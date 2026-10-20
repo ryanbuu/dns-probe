@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DNS_MODE: ${DNS_MODE:-demo}
+      DNS_ADMIN_USERNAME: ${DNS_ADMIN_USERNAME:-admin}
+      DNS_ADMIN_PASSWORD: ${DNS_ADMIN_PASSWORD:-}
+      DNS_VIEWER_USERNAME: ${DNS_VIEWER_USERNAME:-viewer}
+      DNS_VIEWER_PASSWORD: ${DNS_VIEWER_PASSWORD:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      SPRING_CONFIG_ADDITIONAL_LOCATION: optional:file:/app/config/
+      DNS_WEB_TSIG_SECRET: ${DNS_WEB_TSIG_SECRET:-}
+    volumes:
+      - audit-data:/app/data
+      - ./deploy/config:/app/config:ro
+    expose: ["8080"]
+    security_opt: ["no-new-privileges:true"]
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "${LISTEN_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8088}:8080"
+    security_opt: ["no-new-privileges:true"]
+volumes:
+  audit-data:
