@@ -1,6 +1,51 @@
 import { createApp } from "vue";
-import ElementPlus from "element-plus";
-import "element-plus/dist/index.css";
+import {
+  ConfigProvider,
+  Alert,
+  Avatar,
+  Badge,
+  Button,
+  Checkbox,
+  Descriptions,
+  Drawer,
+  Empty,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Menu,
+  Select,
+  Skeleton,
+  Spin,
+  Table,
+  Tag,
+  Tooltip,
+} from "ant-design-vue";
+import "ant-design-vue/dist/reset.css";
 import App from "./App.vue";
 import "./style.css";
-createApp(App).use(ElementPlus).mount("#app");
+const app = createApp(App);
+for (const component of [
+  ConfigProvider,
+  Alert,
+  Avatar,
+  Badge,
+  Button,
+  Checkbox,
+  Descriptions,
+  Drawer,
+  Empty,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Menu,
+  Select,
+  Skeleton,
+  Spin,
+  Table,
+  Tag,
+  Tooltip,
+])
+  app.use(component);
+app.mount("#app");

@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import zhCN from "element-plus/es/locale/lang/zh-cn";
-import { ElMessage } from "element-plus";
+import zhCN from "ant-design-vue/es/locale/zh_CN";
+import { message } from "ant-design-vue";
 import {
-  GridIcon,
-  GlobeIcon,
-  AuditIcon,
-  LogoutIcon,
-  ArrowRightIcon,
-  LockIcon,
-  MenuIcon,
-  CloseIcon,
-  ConnectionIcon,
-} from "./icons";
+  AppstoreOutlined,
+  GlobalOutlined,
+  AuditOutlined,
+  LogoutOutlined,
+  ArrowRightOutlined,
+  LockOutlined,
+  MenuOutlined,
+  CloseOutlined,
+  ApiOutlined,
+} from "@ant-design/icons-vue";
 import { api, csrf, login, logout } from "./api";
 import type { Meta, User, Zone } from "./types";
 import OverviewView from "./views/OverviewView.vue";
@@ -32,10 +32,10 @@ const page = ref("overview"),
   selectedZone = ref(""),
   mobileMenu = ref(false);
 const menu = computed(() => [
-  { id: "overview", title: "概览", en: "Overview", icon: GridIcon },
-  { id: "records", title: "解析记录", en: "DNS records", icon: GlobeIcon },
+  { id: "overview", title: "概览", en: "Overview", icon: AppstoreOutlined },
+  { id: "records", title: "解析记录", en: "DNS records", icon: GlobalOutlined },
   ...(user.value?.admin
-    ? [{ id: "audit", title: "操作审计", en: "Audit log", icon: AuditIcon }]
+    ? [{ id: "audit", title: "操作审计", en: "Audit log", icon: AuditOutlined }]
     : []),
 ]);
 const activeTitle = computed(
@@ -92,7 +92,7 @@ async function signOut() {
     zones.value = [];
     page.value = "overview";
   } catch (e) {
-    ElMessage.error((e as Error).message);
+    message.error((e as Error).message);
   }
 }
 function selectZone(id: string) {
@@ -102,7 +102,7 @@ function selectZone(id: string) {
 function expired() {
   if (user.value) {
     user.value = undefined;
-    ElMessage.warning("会话已过期，请重新登录");
+    message.warning("会话已过期，请重新登录");
   }
 }
 onMounted(() => {
@@ -112,9 +112,9 @@ onMounted(() => {
 onUnmounted(() => window.removeEventListener("session-expired", expired));
 </script>
 <template>
-  <el-config-provider :locale="zhCN">
+  <a-config-provider :locale="zhCN">
     <div v-if="initializing" class="boot-screen">
-      <span class="boot-loading"></span>
+      <a-spin size="large" />
       <p>正在连接 DNS Probe…</p>
     </div>
     <div v-else-if="!user" class="login-layout">
@@ -129,8 +129,8 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
           <h1>让内部网络的<br />每个名字，<br /><em>都有着落。</em></h1>
           <p>区域、记录与变更历史，<br />在一个清晰的工作空间里。</p>
           <div class="login-flow">
-            <span><GlobeIcon />BIND DNS</span><i></i
-            ><span><LockIcon />Kea DDNS</span>
+            <span><GlobalOutlined />BIND DNS</span><i></i
+            ><span><LockOutlined />Kea DDNS</span>
           </div>
         </div>
         <div class="login-story-footer">
@@ -142,53 +142,49 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
           <span class="subtle-pill">DNS MANAGEMENT</span>
           <h2>欢迎回来</h2>
           <p class="muted">登录以管理 DNS 区域与解析记录。</p>
-          <el-alert
-            :closable="false"
+          <a-alert
             v-if="loginError"
-            :title="loginError"
+            :message="loginError"
             type="error"
             show-icon
             style="margin-bottom: 20px"
-          /><el-form
-            label-position="top"
+          /><a-form
+            layout="vertical"
             :model="{ username, password }"
-            @submit.prevent="signIn"
-            ><el-form-item label="用户名"
-              ><el-input
-                v-model="username"
+            @finish="signIn"
+            ><a-form-item label="用户名"
+              ><a-input
+                v-model:value="username"
                 size="large"
                 autocomplete="username"
                 placeholder="输入用户名"
-                aria-label="用户名" /></el-form-item
-            ><el-form-item label="密码"
-              ><el-input
-                type="password"
-                show-password
-                v-model="password"
+                aria-label="用户名" /></a-form-item
+            ><a-form-item label="密码"
+              ><a-input-password
+                v-model:value="password"
                 size="large"
                 autocomplete="current-password"
                 placeholder="输入密码"
-                aria-label="密码" /></el-form-item
-            ><el-button
+                aria-label="密码" /></a-form-item
+            ><a-button
               type="primary"
               size="large"
-              native-type="submit"
+              html-type="submit"
               block
               :loading="loggingIn"
-              >登录工作空间 <ArrowRightIcon /></el-button
-          ></el-form>
+              >登录工作空间 <ArrowRightOutlined /></a-button
+          ></a-form>
           <div v-if="meta?.demo" class="login-demo">
             <strong>演示模式</strong
             ><span>使用独立示例数据，不会连接现网 DNS。</span
-            ><el-button
-              link
-              type="primary"
+            ><a-button
+              type="link"
               size="small"
               @click="
                 username = 'admin';
                 password = 'dns-probe-demo';
               "
-              >填入演示账户</el-button
+              >填入演示账户</a-button
             >
           </div>
           <p class="login-bottom">
@@ -214,7 +210,7 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
             aria-label="关闭菜单"
             @click="mobileMenu = false"
           >
-            <CloseIcon />
+            <CloseOutlined />
           </button>
         </div>
         <div class="workspace-chip">
@@ -227,46 +223,46 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
           ><span class="status-dot"></span>
         </div>
         <div class="nav-label">工作空间</div>
-        <el-menu :default-active="page">
-          <el-menu-item
+        <a-menu mode="inline" :selected-keys="[page]">
+          <a-menu-item
             v-for="item in menu"
             :key="item.id"
-            :index="item.id"
             @click="
               page = item.id;
               mobileMenu = false;
             "
           >
-            <component :is="item.icon" /><span>{{ item.title }}</span>
-          </el-menu-item>
-        </el-menu>
+            <template #icon><component :is="item.icon" /></template
+            >{{ item.title }}
+          </a-menu-item>
+        </a-menu>
         <div class="sidebar-spacer"></div>
         <div class="sidebar-protocol">
-          <ConnectionIcon />
+          <ApiOutlined />
           <div>
             <strong>BIND 原生协议</strong><span>AXFR · RFC2136 · TSIG</span>
           </div>
         </div>
         <div class="sidebar-user">
-          <el-avatar>{{ user.username.slice(0, 1).toUpperCase() }}</el-avatar>
+          <a-avatar>{{ user.username.slice(0, 1).toUpperCase() }}</a-avatar>
           <div>
             <strong>{{ user.username }}</strong
             ><span>{{ user.admin ? "管理员" : "只读用户" }}</span>
           </div>
-          <el-button text aria-label="退出登录" @click="signOut"
-            ><LogoutIcon
-          /></el-button>
+          <a-button type="text" aria-label="退出登录" @click="signOut"
+            ><LogoutOutlined
+          /></a-button>
         </div>
       </aside>
       <main class="main-content">
         <header class="topbar">
           <div>
-            <el-button
+            <a-button
               class="mobile-toggle"
-              text
+              type="text"
               aria-label="打开菜单"
               @click="mobileMenu = true"
-              ><MenuIcon /></el-button
+              ><MenuOutlined /></a-button
             ><span class="breadcrumb"
               >工作空间 <span>/</span> <b>{{ activeTitle }}</b></span
             >
@@ -274,7 +270,7 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
           <div class="topbar-right">
             <span class="mode-badge" :class="{ demo: meta?.demo }"
               ><span class="status-dot"></span
-              >{{ meta?.demo ? "演示环境" : "生产模式" }}</span
+              >{{ meta?.demo ? "演示环境" : "生产连接" }}</span
             ><span class="version-label">v{{ meta?.version }}</span>
           </div>
         </header>
@@ -284,10 +280,9 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
             <p>这里的变更仅影响示例数据，不会写入现网 DNS。</p>
             <span class="demo-banner-end">SANDBOX</span>
           </div>
-          <el-alert
-            :closable="false"
+          <a-alert
             v-if="zoneError"
-            :title="zoneError"
+            :message="zoneError"
             type="error"
             show-icon
           /><OverviewView
@@ -310,5 +305,5 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
         </div>
       </main>
     </div>
-  </el-config-provider>
+  </a-config-provider>
 </template>

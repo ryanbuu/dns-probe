@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import {
-  ArrowRightIcon,
-  GlobeIcon,
-  DatabaseIcon,
-  LockIcon,
-  SuccessIcon,
-  WarningIcon,
-} from "../icons";
+  ArrowRightOutlined,
+  GlobalOutlined,
+  DatabaseOutlined,
+  LockOutlined,
+  CheckCircleOutlined,
+  WarningOutlined,
+} from "@ant-design/icons-vue";
 import type { Zone } from "../types";
 const props = defineProps<{ zones: Zone[]; loading: boolean; demo: boolean }>();
 const emit = defineEmits<{ select: [id: string] }>();
@@ -29,21 +29,21 @@ const healthy = computed(() => props.zones.filter((z) => !z.error).length);
   </div>
   <div class="stats-grid">
     <div class="stat-card">
-      <span class="stat-icon blue"><GlobeIcon /></span>
+      <span class="stat-icon blue"><GlobalOutlined /></span>
       <div>
         <span class="stat-label">管理区域</span
         ><strong>{{ zones.length }}<small>zones</small></strong>
       </div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon violet"><DatabaseIcon /></span>
+      <span class="stat-icon violet"><DatabaseOutlined /></span>
       <div>
         <span class="stat-label">解析记录集</span
         ><strong>{{ total }}<small>RRsets</small></strong>
       </div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon green"><SuccessIcon /></span>
+      <span class="stat-icon green"><CheckCircleOutlined /></span>
       <div>
         <span class="stat-label">区域读取正常</span
         ><strong
@@ -52,7 +52,7 @@ const healthy = computed(() => props.zones.filter((z) => !z.error).length);
       </div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon amber"><LockIcon /></span>
+      <span class="stat-icon amber"><LockOutlined /></span>
       <div>
         <span class="stat-label">自动维护区域</span
         ><strong
@@ -71,21 +71,21 @@ const healthy = computed(() => props.zones.filter((z) => !z.error).length);
         </div>
         <span class="subtle-pill">{{ zones.length }} 个区域</span>
       </div>
-      <el-skeleton v-if="loading" animated /><button
+      <a-skeleton v-if="loading" active /><button
         v-for="zone in zones"
         :key="zone.id"
         class="overview-zone"
         @click="emit('select', zone.id)"
       >
         <span class="zone-symbol" :class="{ protected: zone.readOnly }"
-          ><LockIcon v-if="zone.readOnly" /><GlobeIcon v-else /></span
+          ><LockOutlined v-if="zone.readOnly" /><GlobalOutlined v-else /></span
         ><span class="overview-zone-info"
           ><strong>{{ zone.name.replace(/\.$/, "") }}</strong
           ><span>{{ zone.description }}</span></span
-        ><el-tag v-if="zone.error" type="danger">读取失败</el-tag
+        ><a-tag v-if="zone.error" color="red">读取失败</a-tag
         ><span v-else class="zone-count"
           >{{ zone.recordCount }} <small>记录集</small></span
-        ><ArrowRightIcon />
+        ><ArrowRightOutlined />
       </button>
     </section>
     <aside class="overview-aside">
@@ -118,14 +118,14 @@ const healthy = computed(() => props.zones.filter((z) => !z.error).length);
         </div>
       </div>
       <div class="safety-note">
-        <LockIcon />
+        <LockOutlined />
         <div>
           <h3>Kea DDNS 保护</h3>
           <p>客户端区域、DNS 系统记录和带 DHCID 所有权的名称均有修改保护。</p>
         </div>
       </div>
       <div v-if="demo" class="demo-small">
-        <WarningIcon />当前为独立演示数据，操作不会写入内网 DNS。
+        <WarningOutlined />当前为独立演示数据，操作不会写入内网 DNS。
       </div>
     </aside>
   </div>

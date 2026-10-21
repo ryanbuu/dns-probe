@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { RefreshIcon, ClockIcon } from "../icons";
+import { ReloadOutlined, ClockCircleOutlined } from "@ant-design/icons-vue";
 import { api } from "../api";
 import type { AuditEvent } from "../types";
 const rows = ref<AuditEvent[]>([]),
@@ -9,6 +9,14 @@ const rows = ref<AuditEvent[]>([]),
   offset = ref(0),
   selected = ref<AuditEvent>(),
   drawer = ref(false);
+const columns = [
+  { title: "操作时间", key: "time", width: 180 },
+  { title: "操作", key: "action", width: 85 },
+  { title: "记录", key: "record" },
+  { title: "操作人", dataIndex: "actor", width: 120 },
+  { title: "状态", key: "status", width: 100 },
+  { title: "", key: "details", width: 80 },
+];
 const actions: Record<string, string> = {
     CREATE: "新增",
     UPDATE: "修改",
@@ -49,123 +57,109 @@ onMounted(load);
       <h1>每一次变更，都有记录。</h1>
       <p>追溯记录的修改前后内容与提交结果。</p>
     </div>
-    <el-button :loading="loading" @click="load"
-      ><RefreshIcon />刷新日志</el-button
+    <a-button :loading="loading" @click="load"
+      ><ReloadOutlined />刷新日志</a-button
     >
   </div>
-  <el-alert
-    v-if="error"
-    :title="error"
-    type="error"
-    show-icon
-    :closable="false"
-  />
+  <a-alert v-if="error" :message="error" type="error" show-icon />
   <div class="surface audit-surface">
     <div class="section-heading">
       <div>
         <h2>操作审计</h2>
         <p>待核实表示操作结果尚未完整确认，需要检查实际 DNS 记录。</p>
       </div>
-      <el-tag size="small">持久化存储</el-tag>
+      <a-tag>持久化存储</a-tag>
     </div>
-    <el-table v-loading="loading" :data="rows" row-key="id"
-      ><el-table-column label="操作时间" width="180"
-        ><template #default="{ row }"
+    <a-table
+      :columns="columns"
+      :data-source="rows"
+      row-key="id"
+      :loading="loading"
+      :pagination="false"
+      :scroll="{ x: 760 }"
+      ><template #bodyCell="{ column, record }"
+        ><template v-if="column.key === 'time'"
           ><span class="audit-time">{{
-            new Date(row.occurredAt).toLocaleString("zh-CN", { hour12: false })
+            new Date(record.occurredAt).toLocaleString("zh-CN", {
+              hour12: false,
+            })
           }}</span></template
-        ></el-table-column
-      ><el-table-column label="操作" width="85"
-        ><template #default="{ row }"
-          ><el-tag
-            size="small"
-            :type="
-              row.action === 'DELETE'
-                ? 'danger'
-                : row.action === 'CREATE'
-                  ? 'primary'
-                  : 'warning'
+        ><template v-else-if="column.key === 'action'"
+          ><a-tag
+            :color="
+              record.action === 'DELETE'
+                ? 'red'
+                : record.action === 'CREATE'
+                  ? 'blue'
+                  : 'orange'
             "
-            >{{ actions[row.action] }}</el-tag
+            >{{ actions[record.action] }}</a-tag
           ></template
-        ></el-table-column
-      ><el-table-column label="记录" min-width="230"
-        ><template #default="{ row }"
-          ><div class="mono">{{ row.recordName }}</div>
+        ><template v-else-if="column.key === 'record'"
+          ><div class="mono">{{ record.recordName }}</div>
           <div class="record-fqdn">
-            {{ row.recordType }} · {{ row.zoneId }}
+            {{ record.recordType }} · {{ record.zoneId }}
           </div></template
-        ></el-table-column
-      ><el-table-column
-        label="操作人"
-        prop="actor"
-        width="120"
-      /><el-table-column label="状态" width="100"
-        ><template #default="{ row }"
-          ><el-tag
-            size="small"
-            :type="
-              row.status === 'SUCCESS'
+        ><template v-else-if="column.key === 'status'"
+          ><a-badge
+            :status="
+              record.status === 'SUCCESS'
                 ? 'success'
-                : row.status === 'FAILED'
-                  ? 'danger'
+                : record.status === 'FAILED'
+                  ? 'error'
                   : 'warning'
             "
-            >{{ statuses[row.status] }}</el-tag
-          ></template
-        ></el-table-column
-      ><el-table-column width="80" fixed="right"
-        ><template #default="{ row }"
-          ><el-button
-            link
-            type="primary"
+            :text="statuses[record.status]" /></template
+        ><template v-else-if="column.key === 'details'"
+          ><a-button
+            type="link"
             size="small"
             @click="
-              selected = row;
+              selected = record;
               drawer = true;
             "
-            >详情</el-button
+            >详情</a-button
           ></template
-        ></el-table-column
-      ><template #empty
+        ></template
+      ><template #emptyText
         ><div class="audit-empty">
-          <ClockIcon />
+          <ClockCircleOutlined />
           <h3>变更历史从这里开始</h3>
           <p>添加、修改或删除一条记录后，操作会出现在这里。</p>
         </div></template
-      ></el-table
+      ></a-table
     >
+    <div class="audit-pagination">
+      <a-button
+        :disabled="offset === 0 || loading"
+        @click="
+          offset = Math.max(0, offset - 50);
+          load();
+        "
+        >上一页</a-button
+      ><span>第 {{ offset / 50 + 1 }} 页</span
+      ><a-button
+        :disabled="rows.length < 50 || loading"
+        @click="
+          offset += 50;
+          load();
+        "
+        >下一页</a-button
+      >
+    </div>
   </div>
-  <div class="audit-pagination">
-    <el-button
-      :disabled="offset === 0 || loading"
-      @click="
-        offset = Math.max(0, offset - 50);
-        load();
-      "
-      >上一页</el-button
-    ><span>第 {{ offset / 50 + 1 }} 页</span
-    ><el-button
-      :disabled="rows.length < 50 || loading"
-      @click="
-        offset += 50;
-        load();
-      "
-      >下一页</el-button
-    >
-  </div>
-  <el-drawer v-model="drawer" title="变更详情" size="600px"
+  <a-drawer :open="drawer" title="变更详情" :width="600" @close="drawer = false"
     ><template v-if="selected"
-      ><el-descriptions :column="1" border size="small"
-        ><el-descriptions-item label="操作编号"
-          >#{{ selected.id }}</el-descriptions-item
-        ><el-descriptions-item label="操作人">{{
+      ><a-descriptions :column="1" bordered size="small"
+        ><a-descriptions-item label="操作编号"
+          >#{{ selected.id }}</a-descriptions-item
+        ><a-descriptions-item label="操作人">{{
           selected.actor
-        }}</el-descriptions-item
-        ><el-descriptions-item label="结果"
+        }}</a-descriptions-item
+        ><a-descriptions-item label="结果"
           >{{ statuses[selected.status] }} ·
-          {{ selected.detail }}</el-descriptions-item
-        ></el-descriptions
+          {{ selected.detail }}</a-descriptions-item
+        ></a-descriptions
       >
       <div class="change-preview">
         <div class="diff-before">
@@ -177,6 +171,6 @@ onMounted(load);
           <pre>{{ json(selected.afterJson) }}</pre>
         </div>
       </div></template
-    ></el-drawer
+    ></a-drawer
   >
 </template>

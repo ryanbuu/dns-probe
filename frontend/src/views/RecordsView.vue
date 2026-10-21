@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { message, Modal } from "ant-design-vue";
 import {
-  PlusIcon,
-  RefreshIcon,
-  SearchIcon,
-  LockIcon,
-  EditIcon,
-  DeleteIcon,
-  ProbeIcon,
-  CopyIcon,
-} from "../icons";
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  LockOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ExperimentOutlined,
+  CopyOutlined,
+} from "@ant-design/icons-vue";
 import { api } from "../api";
 import type { Rrset, Zone, ZoneRecords, ProbeResult } from "../types";
 import RecordEditor from "../components/RecordEditor.vue";
@@ -28,9 +28,7 @@ const selected = ref(props.initialZone || props.zones[0]?.id || ""),
   type = ref("ALL"),
   system = ref(false),
   editor = ref(false),
-  editing = ref<Rrset>(),
-  page = ref(1),
-  pageSize = ref(12);
+  editing = ref<Rrset>();
 const probeOpen = ref(false),
   probeBusy = ref(false),
   probeName = ref(""),
@@ -52,7 +50,6 @@ watch(
   },
   { immediate: true },
 );
-watch([search, type, system, pageSize], () => (page.value = 1));
 async function load() {
   if (!selected.value) return;
   const request = ++sequence;
@@ -90,59 +87,58 @@ const filtered = computed(
           .includes(search.value.toLowerCase()),
     ) || [],
 );
-const paginated = computed(() =>
-  filtered.value.slice(
-    (page.value - 1) * pageSize.value,
-    page.value * pageSize.value,
+const recordTypes = computed(() =>
+  ["ALL", ...new Set(data.value?.records.map((r) => r.type) || [])].map(
+    (v) => ({ value: v, label: v === "ALL" ? "全部类型" : v }),
   ),
 );
-const recordTypes = computed(() => [
-  "ALL",
-  ...new Set(data.value?.records.map((r) => r.type) || []),
-]);
-watch(filtered, (v) => {
-  if ((page.value - 1) * pageSize.value >= v.length) page.value = 1;
-});
+const columns = [
+  { title: "记录名称", key: "name", width: "30%" },
+  { title: "类型", key: "type", width: 90 },
+  { title: "TTL", key: "ttl", width: 85 },
+  { title: "记录值", key: "values" },
+  { title: "操作", key: "actions", width: 168, fixed: "right" as const },
+];
 function edit(record?: Rrset) {
   editing.value = record;
   editor.value = true;
 }
-async function remove(record: Rrset) {
+function remove(record: Rrset) {
   const zoneId = selected.value;
-  try {
-    await ElMessageBox.confirm(
-      `${record.name} · ${record.type}，共 ${record.values.length} 个值。此操作会删除整个记录集，并同步到从节点。`,
-      "删除这组解析记录？",
-      {
-        confirmButtonText: "确认删除",
-        cancelButtonText: "取消",
-        type: "warning",
-        confirmButtonClass: "el-button--danger",
-      },
-    );
-    await api(`/zones/${zoneId}/records/delete`, {
-      method: "POST",
-      body: JSON.stringify({
-        name: record.name,
-        type: record.type,
-        expectedRevision: record.revision,
-      }),
-    });
-    ElMessage.success("记录已删除");
-    emit("changed");
-    await load();
-  } catch (e) {
-    if (e instanceof Error) ElMessage.error(e.message);
-  }
+  Modal.confirm({
+    title: "删除这组解析记录？",
+    content: `${record.name} · ${record.type}，共 ${record.values.length} 个值。此操作会删除整个记录集，并同步到从节点。`,
+    okText: "确认删除",
+    okType: "danger",
+    cancelText: "取消",
+    async onOk() {
+      try {
+        await api(`/zones/${zoneId}/records/delete`, {
+          method: "POST",
+          body: JSON.stringify({
+            name: record.name,
+            type: record.type,
+            expectedRevision: record.revision,
+          }),
+        });
+        message.success("记录已删除");
+        emit("changed");
+        await load();
+      } catch (e) {
+        message.error((e as Error).message);
+        throw e;
+      }
+    },
+  });
 }
 async function copy(record: Rrset) {
   try {
     await navigator.clipboard.writeText(
       `${record.name} ${record.ttl} IN ${record.type} ${record.values.join("\n")}`,
     );
-    ElMessage.success("记录已复制");
+    message.success("记录已复制");
   } catch {
-    ElMessage.info("当前浏览器不支持复制，请手动选择记录文本");
+    message.info("当前浏览器不支持复制，请手动选择记录文本");
   }
 }
 async function probe() {
@@ -152,7 +148,7 @@ async function probe() {
       `/zones/${selected.value}/probe?${new URLSearchParams({ name: probeName.value || data.value?.zone.name || "@", type: probeType.value })}`,
     );
   } catch (e) {
-    ElMessage.error((e as Error).message);
+    message.error((e as Error).message);
   } finally {
     probeBusy.value = false;
   }
@@ -181,8 +177,8 @@ function shortName(name: string) {
       <h1>解析记录</h1>
       <p>管理区域记录，变更通过主节点自动同步。</p>
     </div>
-    <el-button @click="load" :loading="loading"
-      ><RefreshIcon />刷新记录</el-button
+    <a-button @click="load" :loading="loading"
+      ><ReloadOutlined />刷新记录</a-button
     >
   </div>
   <div class="records-layout">
@@ -203,26 +199,20 @@ function shortName(name: string) {
           ><small>{{
             zone.readOnly ? "自动维护 · 只读" : "手动维护"
           }}</small></span
-        ><LockIcon v-if="zone.readOnly" />
+        ><LockOutlined v-if="zone.readOnly" />
       </button>
       <div class="rail-note">
-        <LockIcon /><span
+        <LockOutlined /><span
           >Kea 区域受保护，避免人工修改影响租约及 DNS 所有权。</span
         >
       </div>
     </aside>
     <section class="record-panel">
-      <el-alert
-        v-if="error"
-        :title="error"
-        type="error"
-        show-icon
-        :closable="false"
-      />
+      <a-alert v-if="error" :message="error" type="error" show-icon />
       <div v-if="error" class="empty-retry">
-        <el-button @click="load">重新读取区域</el-button>
+        <a-button @click="load">重新读取区域</a-button>
       </div>
-      <el-skeleton v-if="loading" animated :rows="8" />
+      <a-skeleton v-if="loading" active :paragraph="{ rows: 8 }" />
       <template v-if="data">
         <div class="zone-panel-heading">
           <div>
@@ -238,125 +228,114 @@ function shortName(name: string) {
               >
             </div>
           </div>
-          <el-button
+          <a-button
             type="primary"
             :disabled="data.zone.readOnly || !admin"
             @click="edit()"
-            ><PlusIcon />添加记录</el-button
+            ><PlusOutlined />添加记录</a-button
           >
         </div>
-        <el-alert
+        <a-alert
           v-if="data.zone.readOnly"
           class="readonly-alert"
-          title="此区域由 Kea 自动维护"
+          message="此区域由 Kea 自动维护"
           description="可以查询和对比记录；增删改已禁用，以保护 DHCP 客户端的 A、PTR 和 DHCID 所有权。"
           type="info"
           show-icon
-          :closable="false"
         />
         <div class="records-toolbar">
-          <el-input
-            v-model="search"
+          <a-input
+            v-model:value="search"
             placeholder="搜索名称或记录值"
-            clearable
+            allow-clear
             class="record-search"
             aria-label="搜索记录"
-            ><template #prefix><SearchIcon /></template></el-input
-          ><el-select v-model="type" style="width: 128px" aria-label="筛选类型"
-            ><el-option
-              v-for="value in recordTypes"
-              :key="value"
-              :value="value"
-              :label="value === 'ALL' ? '全部类型' : value" /></el-select
-          ><el-checkbox v-model="system">系统记录</el-checkbox
-          ><el-button class="probe-button" @click="openProbe()"
-            ><ProbeIcon />主从对比</el-button
+            ><template #prefix><SearchOutlined /></template></a-input
+          ><a-select
+            v-model:value="type"
+            :options="recordTypes"
+            style="width: 128px"
+            aria-label="筛选类型"
+          /><a-checkbox v-model:checked="system">系统记录</a-checkbox
+          ><a-button class="probe-button" @click="openProbe()"
+            ><ExperimentOutlined />主从对比</a-button
           >
         </div>
-        <el-table
-          :data="paginated"
+        <a-table
+          :data-source="filtered"
+          :columns="columns"
           :row-key="(r: Rrset) => r.name + '|' + r.type"
-          style="width: 100%"
+          :pagination="{
+            pageSize: 12,
+            showSizeChanger: true,
+            showTotal: (total: number) => `共 ${total} 组记录`,
+          }"
+          :scroll="{ x: 780 }"
         >
-          <el-table-column label="记录名称" min-width="220"
-            ><template #default="{ row }"
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'name'"
               ><div class="record-owner">
-                <strong class="mono">{{ shortName(row.name) }}</strong
-                ><el-tooltip v-if="!row.editable" :content="row.protection"
-                  ><LockIcon class="muted"
-                /></el-tooltip>
+                <strong class="mono">{{ shortName(record.name) }}</strong
+                ><a-tooltip v-if="!record.editable" :title="record.protection"
+                  ><LockOutlined class="muted"
+                /></a-tooltip>
               </div>
-              <div class="record-fqdn mono">{{ row.name }}</div></template
-            ></el-table-column
-          >
-          <el-table-column label="类型" width="88"
-            ><template #default="{ row }"
-              ><el-tag>{{ row.type }}</el-tag></template
-            ></el-table-column
-          >
-          <el-table-column label="TTL" width="80"
-            ><template #default="{ row }"
+              <div class="record-fqdn mono">{{ record.name }}</div></template
+            >
+            <template v-else-if="column.key === 'type'"
+              ><a-tag>{{ record.type }}</a-tag></template
+            >
+            <template v-else-if="column.key === 'ttl'"
               ><span class="mono ttl"
-                >{{ row.ttl }}<small>s</small></span
+                >{{ record.ttl }}<small>s</small></span
               ></template
-            ></el-table-column
-          >
-          <el-table-column label="记录值" min-width="220"
-            ><template #default="{ row }"
+            >
+            <template v-else-if="column.key === 'values'"
               ><div
-                v-for="value in row.values"
+                v-for="value in record.values"
                 :key="value"
                 class="record-value mono"
               >
                 {{ value }}
               </div></template
-            ></el-table-column
-          >
-          <el-table-column label="操作" width="168" fixed="right"
-            ><template #default="{ row }"
+            >
+            <template v-else-if="column.key === 'actions'"
               ><div class="row-actions">
-                <el-tooltip content="复制记录"
-                  ><el-button
-                    text
+                <a-tooltip title="复制记录"
+                  ><a-button
+                    type="text"
                     size="small"
                     aria-label="复制记录"
-                    @click="copy(row)"
-                    ><CopyIcon /></el-button></el-tooltip
-                ><el-tooltip
-                  :content="row.editable ? '编辑记录' : row.protection"
-                  ><el-button
-                    text
+                    @click="copy(record)"
+                    ><CopyOutlined /></a-button></a-tooltip
+                ><a-tooltip
+                  :title="record.editable ? '编辑记录' : record.protection"
+                  ><a-button
+                    type="text"
                     size="small"
-                    :disabled="!row.editable || !admin"
+                    :disabled="!record.editable || !admin"
                     aria-label="编辑记录"
-                    @click="edit(row)"
-                    ><EditIcon /></el-button></el-tooltip
-                ><el-button
-                  text
+                    @click="edit(record)"
+                    ><EditOutlined /></a-button></a-tooltip
+                ><a-button
+                  type="text"
                   size="small"
-                  type="danger"
-                  :disabled="!row.editable || !admin"
+                  danger
+                  :disabled="!record.editable || !admin"
                   aria-label="删除记录"
-                  @click="remove(row)"
-                  ><DeleteIcon
-                /></el-button></div></template
-          ></el-table-column>
-          <template #empty
-            ><el-empty description="没有匹配的记录"
-              ><el-button v-if="search" @click="search = ''"
-                >清除搜索</el-button
-              ></el-empty
+                  @click="remove(record)"
+                  ><DeleteOutlined
+                /></a-button></div
+            ></template>
+          </template>
+          <template #emptyText
+            ><a-empty description="没有匹配的记录"
+              ><a-button v-if="search" @click="search = ''"
+                >清除搜索</a-button
+              ></a-empty
             ></template
           >
-        </el-table>
-        <el-pagination
-          v-model:current-page="page"
-          v-model:page-size="pageSize"
-          :page-sizes="[12, 24, 48]"
-          layout="total, prev, pager, next, sizes"
-          :total="filtered.length"
-          class="record-pagination"
-        />
+        </a-table>
         <div class="panel-footnote">
           <span class="status-dot"></span>变更写入主节点 · 从节点通过 BIND
           区域传送同步
@@ -374,16 +353,21 @@ function shortName(name: string) {
       </template>
     </section>
   </div>
-  <el-drawer v-model="probeOpen" title="主从查询对比" size="580px"
+  <a-drawer
+    :open="probeOpen"
+    title="主从查询对比"
+    :width="580"
+    @close="probeOpen = false"
     ><p class="muted">查询主节点与从节点的实际响应，核对记录和 SOA 序列号。</p>
     <div class="probe-form">
-      <el-input
-        v-model="probeName"
+      <a-input
+        v-model:value="probeName"
         placeholder="记录名称"
         aria-label="查询名称"
-      /><el-select v-model="probeType" style="width: 105px"
-        ><el-option
-          v-for="value in [
+      /><a-select
+        v-model:value="probeType"
+        :options="
+          [
             'A',
             'AAAA',
             'CNAME',
@@ -394,36 +378,33 @@ function shortName(name: string) {
             'CAA',
             'NS',
             'SOA',
-          ]"
-          :key="value"
-          :value="value"
-          :label="value" /></el-select
-      ><el-button type="primary" :loading="probeBusy" @click="probe"
-        >查询</el-button
+          ].map((value) => ({ value }))
+        "
+        style="width: 105px"
+      /><a-button type="primary" :loading="probeBusy" @click="probe"
+        >查询</a-button
       >
     </div>
-    <div v-loading="probeBusy">
-      <div v-for="r in probeResult" :key="r.server" class="probe-result">
+    <a-spin :spinning="probeBusy"
+      ><div v-for="r in probeResult" :key="r.server" class="probe-result">
         <div class="probe-result-head">
           <strong>{{ r.server }}</strong
-          ><el-tag size="small" :type="r.reachable ? 'success' : 'danger'">{{
+          ><a-tag :color="r.reachable ? 'green' : 'red'">{{
             r.reachable ? r.rcode : "不可达"
-          }}</el-tag
+          }}</a-tag
           ><span>{{ r.elapsedMs }} ms</span>
         </div>
         <div class="muted">SOA {{ r.serial ?? "—" }}</div>
         <pre>{{ r.error || r.answers.join("\n") || "未返回此类型的记录" }}</pre>
-      </div>
-    </div>
-    <el-alert
+      </div></a-spin
+    ><a-alert
       v-if="
         probeResult.length > 1 &&
         probeResult.every((r) => r.serial != null) &&
         new Set(probeResult.map((r) => r.serial)).size > 1
       "
       type="warning"
-      title="SOA 序列号暂不一致，请稍后重试并检查区域同步。"
+      message="SOA 序列号暂不一致，请稍后重试并检查区域同步。"
       show-icon
-      :closable="false"
-  /></el-drawer>
+  /></a-drawer>
 </template>

@@ -1,6 +1,6 @@
 # DNS Probe
 
-基于 **Java 21 / Spring Boot + Vue 3 / Element Plus** 的 BIND DNS 记录管理面板，前后端独立构建、独立部署。
+基于 **Java 21 / Spring Boot + Vue 3 / Ant Design Vue** 的 BIND DNS 记录管理面板，前后端独立构建、独立部署。
 
 通过 AXFR 读取区域，使用 RFC2136 + TSIG 原子更新记录集。BIND 继续负责主从同步和 DNSSEC 签名；Kea 继续管理客户端 DDNS。
 
@@ -94,4 +94,4 @@ CI 以 Java 21 和 Node.js 22 构建、测试。测试截图使用演示数据�
 
 [API 说明](docs/API.md) · [BIND 接入说明](docs/BIND-INTEGRATION.md)
 
-前端使用 Element Plus 默认主题；不覆盖组件配色、圆角、字号和状态样式，仅保留应用布局与响应式尺寸适配。
+前端使用 Ant Design Vue 默认主题；不覆盖组件配色、圆角、字号和状态样式，仅保留应用布局与响应式尺寸适配。
