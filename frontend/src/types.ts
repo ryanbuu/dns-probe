@@ -53,3 +53,57 @@ export interface ProbeResult {
   elapsedMs: number;
   error?: string;
 }
+
+export interface DhcpNode {
+  id: string;
+  label: string;
+  online: boolean;
+  version?: string;
+  mode?: string;
+  role?: string;
+  state?: string;
+  inTouch?: boolean;
+  leaseCount?: number;
+  error?: string;
+}
+export interface Reservation {
+  mac: string;
+  address: string;
+  hostname: string;
+  editable: boolean;
+  subnetId?: number;
+}
+export interface DhcpSubnet {
+  id: number;
+  prefix: string;
+  pools: string[];
+  router: string;
+  dnsServers: string;
+  domain: string;
+  searchDomains: string;
+  validLifetime: number;
+  reservations: Reservation[];
+}
+export interface DhcpLease {
+  address: string;
+  mac: string;
+  clientId: string;
+  hostname: string;
+  subnetId: number;
+  expiresAt: number;
+  state: number;
+  active: boolean;
+  ddnsForward: boolean;
+  ddnsReverse: boolean;
+  revision: string;
+  seenOn: string[];
+}
+export interface DhcpState {
+  enabled: boolean;
+  revision: string;
+  aligned: boolean;
+  writable: boolean;
+  nodes: DhcpNode[];
+  subnets: DhcpSubnet[];
+  leases: DhcpLease[];
+}

@@ -42,3 +42,12 @@
 错误：400 输入无效，401 未登录，403 权限/CSRF/受保护记录，404 区域不存在，409 并发冲突，502 DNS 拒绝或结果未确认，503 DNS 已更新但审计最终状态未完成。超时后先读实际 DNS，不要盲目重发。
 
 所有变更审计先写 PENDING 再执行 DNS；确认后改 SUCCESS，明确失败改 FAILED；网络超时或响应签名校验失败则保持 PENDING，待查询实际记录核实。应用退出或数据库在最终落盘时失效，可能留下 PENDING，需要人工核实，不能等同于“未更新”。
+
+## DHCP
+
+- `GET /api/dhcp`：节点、子网、保留地址、合并租约、配置版本和可写状态。需要登录。
+- `POST /api/dhcp/preview/{operation}`：双节点预校验，需要管理员和 CSRF。
+- `POST /api/dhcp/changes/{operation}`：保存并持久化，需要管理员和 CSRF。
+- `POST /api/dhcp/leases`：释放租约或重发 DDNS，需要管理员和 CSRF。
+
+配置 operation 为 `subnet-save`、`subnet-delete`、`reservation-save`、`reservation-delete`。请求结构为 `{revision, subnetId, values}`。租约请求为 `{revision, address, action}`，action 为 `release` 或 `resend-ddns`。不开放原始 Kea 命令透传。具体限制见 [DHCP 管理说明](DHCP.md)。

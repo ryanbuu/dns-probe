@@ -1205,3 +1205,337 @@ a:focus-visible {
     scroll-behavior: auto;
   }
 }
+/* Shared account, DNS, DHCP and audit surfaces. */
+.sidebar > .ant-menu {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sidebar-spacer {
+  display: none;
+}
+.workspace-chip {
+  margin: 20px;
+}
+.nav-search {
+  padding: 0 16px 18px;
+}
+.sidebar-protocol {
+  font-size: 11px;
+}
+.resource-eyebrow {
+  font-size: 12px;
+  color: #737373;
+  margin-bottom: 8px;
+}
+.resource-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #fff;
+  margin-bottom: 28px;
+}
+.resource-metrics > div {
+  padding: 20px 24px;
+  border-right: 1px solid #e5e5e5;
+}
+.resource-metrics > div:last-child {
+  border-right: 0;
+}
+.resource-metrics > div > span {
+  display: block;
+  color: #737373;
+  font-size: 13px;
+}
+.resource-metrics strong {
+  display: block;
+  font-weight: 600;
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  margin: 8px 0 4px;
+}
+.resource-metrics small {
+  font-size: 12px;
+  color: #8c8c8c;
+  font-weight: 400;
+}
+.resource-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 22px;
+}
+.resource-tabs > button {
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: #737373;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.resource-tabs > button.active {
+  border-bottom-color: #1677ff;
+  color: #202124;
+  font-weight: 500;
+}
+.resource-tabs > button > span:last-child:not(.anticon) {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: #eee;
+  font-size: 12px;
+}
+.resource-toolbar > .ant-input-affix-wrapper,
+.audit-toolbar > .ant-input-affix-wrapper,
+.records-toolbar > .ant-input-affix-wrapper {
+  flex: 1;
+  min-width: 220px;
+}
+.resource-toolbar > .muted {
+  font-size: 12px;
+}
+.resource-panel {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+  min-width: 0;
+}
+.resource-list-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid #e5e5e5;
+  color: #737373;
+  font-size: 12px;
+  background: #fafafa;
+}
+.resource-list-row {
+  border: 0;
+  border-bottom: 1px solid #e5e5e5;
+  background: white;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+  width: 100%;
+}
+.resource-list-row:last-child {
+  border-bottom: 0;
+}
+.resource-list-title {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  min-width: 0;
+}
+.resource-list-title > .anticon {
+  color: #737373;
+  font-size: 18px;
+}
+.resource-list-title strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1677ff;
+  overflow-wrap: anywhere;
+}
+.resource-list-title p {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #8c8c8c;
+}
+.resource-list-status {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 12px;
+  color: #737373;
+  white-space: nowrap;
+}
+.workspace-services {
+  margin-top: 32px;
+}
+.workspace-services h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.service-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.service-summary {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 22px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: white;
+}
+.service-summary > .anticon {
+  font-size: 20px;
+  margin-top: 3px;
+  color: #737373;
+}
+.service-summary strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.service-summary p {
+  font-size: 12px;
+  color: #8c8c8c;
+  line-height: 1.7;
+  margin-top: 4px;
+}
+.service-summary > .ant-badge,
+.service-summary > .ant-btn {
+  margin-left: auto;
+  white-space: nowrap;
+}
+.dhcp-form-grid {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) 180px;
+  gap: 18px;
+}
+.dhcp-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+.dhcp-editor .ant-input-number,
+.dhcp-editor .ant-select {
+  width: 100%;
+}
+.dhcp-editor h2 {
+  font-size: 17px;
+  font-weight: 600;
+}
+.dhcp-editor > .ant-alert {
+  margin-bottom: 18px;
+}
+.config-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  padding: 18px;
+  background: #fff;
+}
+.ha-node-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.ha-node {
+  padding: 0 20px 20px;
+}
+.ha-node .section-heading {
+  padding-left: 0;
+  padding-right: 0;
+}
+.ha-summary {
+  margin-top: 24px;
+}
+.audit-pagination {
+  padding: 16px 20px;
+  margin-top: 0;
+  border-top: 1px solid #e5e5e5;
+}
+@media (hover: hover) and (pointer: fine) {
+  .resource-list-row:hover {
+    background: #fafafa;
+  }
+}
+@media (max-width: 1100px) {
+  .resource-list-status {
+    gap: 12px;
+  }
+  .resource-list-status > .ant-tag {
+    display: none;
+  }
+  .service-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .resource-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 24px;
+  }
+  .resource-metrics > div {
+    padding: 16px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .resource-metrics > div:nth-child(2) {
+    border-right: 0;
+  }
+  .resource-metrics > div:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+  .resource-metrics strong {
+    font-size: 25px;
+  }
+  .resource-metrics small {
+    font-size: 11px;
+  }
+  .resource-list-header {
+    padding: 12px 16px;
+  }
+  .resource-list-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 16px;
+    gap: 14px;
+  }
+  .resource-list-title {
+    gap: 10px;
+  }
+  .resource-list-status {
+    padding-left: 28px;
+    width: 100%;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .resource-list-status > .anticon:last-child {
+    margin-left: auto;
+  }
+  .resource-toolbar > .ant-input-affix-wrapper,
+  .audit-toolbar > .ant-input-affix-wrapper,
+  .records-toolbar > .ant-input-affix-wrapper {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+  .dhcp-form-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 12px;
+  }
+  .dhcp-form-grid .ant-form-item:nth-child(2) {
+    grid-column: span 2;
+    grid-row: 2;
+  }
+  .dhcp-options-grid {
+    grid-template-columns: 1fr;
+  }
+  .ha-node-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .service-summary {
+    padding: 18px 16px;
+    gap: 10px;
+  }
+  .service-summary > .ant-badge {
+    font-size: 12px;
+  }
+  .resource-tabs {
+    gap: 20px;
+  }
+}

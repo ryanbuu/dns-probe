@@ -53,9 +53,11 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/audit")
                     .hasRole("ADMIN")
-                    .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/zones/**")
+                    .requestMatchers(
+                        org.springframework.http.HttpMethod.POST, "/api/zones/**", "/api/dhcp/**")
                     .hasRole("ADMIN")
-                    .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/zones/**")
+                    .requestMatchers(
+                        org.springframework.http.HttpMethod.PUT, "/api/zones/**", "/api/dhcp/**")
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())

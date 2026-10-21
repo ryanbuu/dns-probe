@@ -26,6 +26,17 @@ public class AuditService {
       String type,
       Rrset before,
       Rrset after) {
+    return beginObject(actor, zone, action, name, type, before, after);
+  }
+
+  public long beginObject(
+      String actor,
+      String zone,
+      String action,
+      String name,
+      String type,
+      Object before,
+      Object after) {
     Map<String, Object> args = new HashMap<>();
     args.put("occurred_at", java.sql.Timestamp.from(java.time.Instant.now()));
     args.put("actor", actor);

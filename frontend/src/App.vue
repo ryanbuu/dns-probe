@@ -6,6 +6,10 @@ import {
   AppstoreOutlined,
   GlobalOutlined,
   AuditOutlined,
+  ClusterOutlined,
+  TeamOutlined,
+  DatabaseOutlined,
+  SafetyCertificateOutlined,
   LogoutOutlined,
   LockOutlined,
   MenuOutlined,
@@ -16,6 +20,7 @@ import type { Meta, User, Zone } from "./types";
 import OverviewView from "./views/OverviewView.vue";
 import RecordsView from "./views/RecordsView.vue";
 import AuditView from "./views/AuditView.vue";
+import DhcpView from "./views/DhcpView.vue";
 const meta = ref<Meta>(),
   user = ref<User>(),
   initializing = ref(true),
@@ -29,16 +34,71 @@ const meta = ref<Meta>(),
 const page = ref("overview"),
   selectedZone = ref(""),
   mobileMenu = ref(false);
-const menu = computed(() => [
-  { id: "overview", title: "概览", en: "Overview", icon: AppstoreOutlined },
-  { id: "records", title: "解析记录", en: "DNS records", icon: GlobalOutlined },
-  ...(user.value?.admin
-    ? [{ id: "audit", title: "操作审计", en: "Audit log", icon: AuditOutlined }]
-    : []),
-]);
-const activeTitle = computed(
-  () => menu.value.find((m) => m.id === page.value)?.title || "概览",
+const routes = [
+  { id: "overview", title: "概览", icon: AppstoreOutlined, group: "工作空间" },
+  { id: "records", title: "解析记录", icon: GlobalOutlined, group: "DNS" },
+  {
+    id: "dhcp-subnets",
+    title: "子网与地址池",
+    icon: ClusterOutlined,
+    group: "DHCP",
+  },
+  {
+    id: "dhcp-reservations",
+    title: "保留地址",
+    icon: TeamOutlined,
+    group: "DHCP",
+  },
+  { id: "dhcp-leases", title: "租约", icon: DatabaseOutlined, group: "DHCP" },
+  {
+    id: "dhcp-ha",
+    title: "高可用状态",
+    icon: SafetyCertificateOutlined,
+    group: "DHCP",
+  },
+  { id: "audit", title: "操作审计", icon: AuditOutlined, group: "管理" },
+];
+const navSearch = ref(""),
+  openKeys = ref(["dns", "dhcp"]);
+const menu = computed(() =>
+  routes.filter(
+    (r) =>
+      (r.id !== "audit" || user.value?.admin) &&
+      r.title.includes(navSearch.value),
+  ),
 );
+const activeTitle = computed(
+  () => routes.find((r) => r.id === page.value)?.title || "概览",
+);
+const activeGroup = computed(
+  () => routes.find((r) => r.id === page.value)?.group || "工作空间",
+);
+function navigate(id: string, zone?: string) {
+  page.value = id;
+  mobileMenu.value = false;
+  if (zone) selectedZone.value = zone;
+  const h =
+    "#/" +
+    id +
+    (id === "records" && selectedZone.value
+      ? "?zone=" + encodeURIComponent(selectedZone.value)
+      : "");
+  if (location.hash !== h) location.hash = h;
+}
+function readRoute() {
+  const [route, query] = (
+    location.hash.replace(/^#\//, "") || "overview"
+  ).split("?");
+  if (routes.some((r) => r.id === route)) {
+    page.value = route!;
+    const z = new URLSearchParams(query).get("zone");
+    if (z) selectedZone.value = z;
+  } else page.value = "overview";
+  mobileMenu.value = false;
+}
+function section() {
+  return page.value.slice(5) as "subnets" | "leases" | "reservations" | "ha";
+}
 async function loadZones() {
   loadingZones.value = true;
   zoneError.value = "";
@@ -88,14 +148,14 @@ async function signOut() {
     await logout();
     user.value = undefined;
     zones.value = [];
-    page.value = "overview";
+    navigate("overview");
   } catch (e) {
     message.error((e as Error).message);
   }
 }
 function selectZone(id: string) {
   selectedZone.value = id;
-  page.value = "records";
+  navigate("records", id);
 }
 function expired() {
   if (user.value) {
@@ -104,10 +164,15 @@ function expired() {
   }
 }
 onMounted(() => {
+  readRoute();
+  window.addEventListener("hashchange", readRoute);
   window.addEventListener("session-expired", expired);
   void start();
 });
-onUnmounted(() => window.removeEventListener("session-expired", expired));
+onUnmounted(() => {
+  window.removeEventListener("session-expired", expired);
+  window.removeEventListener("hashchange", readRoute);
+});
 </script>
 <template>
   <a-config-provider :locale="zhCN">
@@ -122,7 +187,7 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
       <section class="login-panel">
         <div class="login-form-wrap">
           <h1>欢迎回来</h1>
-          <p class="muted">登录 DNS 管理控制台。</p>
+          <p class="muted">登录以管理 DNS、DHCP 和网络配置。</p>
           <a-alert
             v-if="loginError"
             :message="loginError"
@@ -183,7 +248,10 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
       ></div>
       <aside class="sidebar" :class="{ visible: mobileMenu }">
         <div class="sidebar-top">
-          <a class="brand" href="#" @click.prevent="page = 'overview'"
+          <a
+            class="brand"
+            href="#/overview"
+            @click.prevent="navigate('overview')"
             ><img src="/favicon.svg" alt="" /><strong>DNS Probe</strong></a
           ><a-button
             class="mobile-close"
@@ -199,22 +267,55 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
           }}</a-avatar>
           <div><strong>我的工作空间</strong><small>内部 DNS 管理</small></div>
         </div>
-        <div class="nav-label">工作空间</div>
-        <a-menu mode="inline" :selected-keys="[page]"
-          ><a-menu-item
-            v-for="item in menu"
-            :key="item.id"
-            @click="
-              page = item.id;
-              mobileMenu = false;
-            "
-            ><template #icon><component :is="item.icon" /></template
-            >{{ item.title }}</a-menu-item
-          ></a-menu
+        <div class="nav-search">
+          <a-input
+            v-model:value="navSearch"
+            placeholder="搜索功能"
+            aria-label="搜索导航"
+            allow-clear
+          />
+        </div>
+        <a-menu
+          mode="inline"
+          :selected-keys="[page]"
+          v-model:openKeys="openKeys"
         >
+          <a-menu-item
+            v-if="menu.some((m) => m.id === 'overview')"
+            key="overview"
+            @click="navigate('overview')"
+            ><template #icon><AppstoreOutlined /></template>概览</a-menu-item
+          >
+          <a-sub-menu v-if="menu.some((m) => m.group === 'DNS')" key="dns"
+            ><template #icon><GlobalOutlined /></template
+            ><template #title>DNS</template
+            ><a-menu-item
+              v-for="item in menu.filter((m) => m.group === 'DNS')"
+              :key="item.id"
+              @click="navigate(item.id)"
+              >{{ item.title }}</a-menu-item
+            ></a-sub-menu
+          >
+          <a-sub-menu v-if="menu.some((m) => m.group === 'DHCP')" key="dhcp"
+            ><template #icon><ClusterOutlined /></template
+            ><template #title>DHCP</template
+            ><a-menu-item
+              v-for="item in menu.filter((m) => m.group === 'DHCP')"
+              :key="item.id"
+              @click="navigate(item.id)"
+              >{{ item.title }}</a-menu-item
+            ></a-sub-menu
+          >
+          <a-menu-item
+            v-if="menu.some((m) => m.id === 'audit')"
+            key="audit"
+            @click="navigate('audit')"
+            ><template #icon><AuditOutlined /></template>操作审计</a-menu-item
+          >
+        </a-menu>
         <div class="sidebar-spacer"></div>
         <div class="sidebar-protocol">
-          <LockOutlined /><span>专用 TSIG · Kea 区域保护</span>
+          <LockOutlined /><span>DNS · DHCP · 高可用</span>
         </div>
         <div class="sidebar-user">
           <a-avatar size="small">{{
@@ -239,7 +340,7 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
               @click="mobileMenu = true"
               ><MenuOutlined /></a-button
             ><span class="breadcrumb"
-              >工作空间 <span>/</span> <b>{{ activeTitle }}</b></span
+              >{{ activeGroup }} <span>/</span> <b>{{ activeTitle }}</b></span
             >
           </div>
           <div class="topbar-right">
@@ -278,9 +379,14 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
             :admin="user.admin"
             @changed="loadZones"
           />
-          <AuditView v-else-if="page === 'audit' && user.admin" />
+          <DhcpView
+            v-else-if="page.startsWith('dhcp-')"
+            :key="page"
+            :section="section()"
+            :admin="user.admin"
+          /><AuditView v-else-if="page === 'audit' && user.admin" />
           <footer class="page-footer">
-            <span>DNS Probe</span><span>BIND DNS 管理控制台</span>
+            <span>DNS Probe</span><span>DNS 与 DHCP 管理控制台</span>
           </footer>
         </div>
       </main>

@@ -1,4 +1,4 @@
-# DNS 控制台布局参考
+# 控制台布局参考
 
 参考 Cloudflare 的 [2026 DNS 面板更新](https://developers.cloudflare.com/changelog/post/2026-05-20-new-dns-records-ux/) 与 [DNS 记录管理说明](https://developers.cloudflare.com/dns/manage-dns-records/how-to/create-dns-records/)。官方展示的方向包括更灵活的记录表格、长内容显示、手机端卡片，以及页面内 DNS / TTL 说明。
 
@@ -15,3 +15,11 @@ Ant Design Vue 继续采用默认组件主题。保留 DNS Probe 自有名称和
 可用功能：按名称或内容搜索、类型过滤、系统记录和可编辑记录过滤、内容/维护方式/TTL 列开关、当前筛选记录的 zone 文本片段导出、提交前变更预览。导出的文本片段包含当前筛选记录，不保证包含完整区域所需的 SOA/NS。
 
 权限、TSIG、记录版本检查及审计均由既有后端执行，界面改版不修改生产 BIND 策略。
+
+## 整体工作空间与 DHCP
+
+侧栏按概览、DNS、DHCP 和审计分组，页面使用统一面包屑、标题、工具条和数据列表。导航搜索筛选实际页面，URL hash 保留当前页，刷新或浏览器后退可恢复。
+
+概览使用资源列表呈现 DNS 区域与 DHCP 子网，并汇总真实记录、租约和节点状态。DHCP 包括子网与地址池、保留地址、租约和 HA 四个页面。手机端为子网、保留地址及租约提供独立卡片；确认变更时显示内容预览和双节点校验结果。
+
+登录、审计筛选及变更详情沿用相同字体、留白和边框。保留 Ant Design Vue 的原生按钮、表单和反馈样式，橙色仅用于 DNS Probe 自有标识。

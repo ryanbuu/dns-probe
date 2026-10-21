@@ -3,7 +3,7 @@ async function signIn(page: import("@playwright/test").Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "填入演示账户" }).click();
   await page.getByRole("button", { name: "登录工作空间" }).click();
-  await expect(page.getByRole("heading", { name: "DNS 概览" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "网络概览" })).toBeVisible();
 }
 test("record lifecycle, protected zones, comparison and audit", async ({
   page,
@@ -96,7 +96,7 @@ test("desktop and mobile views remain usable", async ({ page }) => {
   await expect(page.getByRole("button", { name: "打开菜单" })).toBeVisible();
   await page.getByRole("button", { name: "打开菜单" }).click();
   await page.getByRole("menuitem", { name: /概览/ }).click();
-  await expect(page.getByRole("heading", { name: "DNS 概览" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "网络概览" })).toBeVisible();
   await page.getByRole("button", { name: "打开菜单" }).click();
   await page.getByRole("menuitem", { name: /解析记录/ }).click();
   await expect(page.locator(".mobile-record").first()).toBeVisible();
@@ -150,4 +150,117 @@ test("filter records, configure columns and export current results", async ({
   for await (const chunk of stream!) text += chunk.toString();
   expect(text).toContain("apphost.intra.example.com. 300 IN A 192.0.2.30");
   expect(text).not.toContain("database.intra.example.com.");
+});
+
+test("DHCP reservations, subnet lifecycle and HA views", async ({ page }) => {
+  await signIn(page);
+  await page.getByRole("menuitem", { name: "保留地址", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "保留地址", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "添加保留地址", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "MAC 地址", exact: true })
+    .fill("02:00:00:00:00:ee");
+  await page
+    .getByRole("textbox", { name: "固定 IP", exact: true })
+    .fill("198.51.100.60");
+  await page
+    .getByRole("textbox", { name: "保留主机名", exact: true })
+    .fill("browser-reservation");
+  await page.getByRole("button", { name: "校验并预览", exact: true }).click();
+  await expect(
+    page.getByText("两台 Kea 配置校验通过", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "确认同步", exact: true }).click();
+  const reservation = page
+    .getByRole("row")
+    .filter({ hasText: "02:00:00:00:00:ee" });
+  await expect(reservation).toContainText("198.51.100.60");
+  await reservation.getByRole("button", { name: "编辑保留地址" }).click();
+  await page
+    .getByRole("textbox", { name: "固定 IP", exact: true })
+    .fill("198.51.100.61");
+  await page.getByRole("button", { name: "校验并预览" }).click();
+  await page.getByRole("button", { name: "确认同步" }).click();
+  await expect(reservation).toContainText("198.51.100.61");
+  await reservation.getByRole("button", { name: "删除保留地址" }).click();
+  await page.getByRole("button", { name: "确认删除" }).click();
+  await expect(reservation).toHaveCount(0);
+  await page
+    .getByRole("menuitem", { name: "子网与地址池", exact: true })
+    .click();
+  await page.getByRole("button", { name: "添加子网", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "子网前缀", exact: true })
+    .fill("192.0.2.0/24");
+  await page
+    .getByRole("textbox", { name: "地址池", exact: true })
+    .fill("192.0.2.100 - 192.0.2.150");
+  await page.getByRole("button", { name: "校验并预览" }).click();
+  await page.getByRole("button", { name: "确认同步" }).click();
+  const subnet = page.getByRole("row").filter({ hasText: "192.0.2.0/24" });
+  await expect(subnet).toBeVisible();
+  await subnet.getByRole("button", { name: "删除子网" }).click();
+  await page.getByRole("button", { name: "确认删除" }).click();
+  await expect(subnet).toHaveCount(0);
+  await page.getByRole("menuitem", { name: "租约", exact: true }).click();
+  await expect(
+    page.getByRole("row").filter({ hasText: "198.51.100.101" }),
+  ).toBeVisible();
+  await page.getByRole("menuitem", { name: "高可用状态", exact: true }).click();
+  await expect(
+    page.getByText("两台节点的子网配置一致", { exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "高可用状态", exact: true }),
+  ).toBeVisible();
+});
+
+test("DHCP and audit screenshots", async ({ page }) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: "欢迎回来", exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "../docs/screenshots/login.png",
+    fullPage: true,
+    animations: "disabled",
+  });
+  await signIn(page);
+  for (const [name, file] of [
+    ["子网与地址池", "dhcp-subnets"],
+    ["租约", "dhcp-leases"],
+    ["保留地址", "dhcp-reservations"],
+    ["高可用状态", "dhcp-ha"],
+    ["操作审计", "audit"],
+  ]) {
+    await page.getByRole("menuitem", { name: new RegExp(name) }).click();
+    await expect(
+      page.getByRole("heading", { name, exact: true }).first(),
+    ).toBeVisible();
+    await expect(page.locator(".ant-skeleton")).toHaveCount(0);
+    await page.screenshot({
+      path: `../docs/screenshots/${file}.png`,
+      fullPage: true,
+      animations: "disabled",
+    });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "打开菜单" }).click();
+  await page.getByRole("menuitem", { name: "租约", exact: true }).click();
+  await expect(
+    page.locator(".dhcp-mobile-cards .mobile-record").first(),
+  ).toBeVisible();
+  const size = await page.evaluate(() => ({
+    page: document.documentElement.scrollWidth,
+    viewport: innerWidth,
+  }));
+  expect(size.page).toBeLessThanOrEqual(size.viewport);
+  await page.screenshot({
+    path: "../docs/screenshots/dhcp-mobile.png",
+    fullPage: true,
+    animations: "disabled",
+  });
 });

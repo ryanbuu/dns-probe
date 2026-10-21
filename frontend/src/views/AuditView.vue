@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ReloadOutlined, ClockCircleOutlined } from "@ant-design/icons-vue";
 import { api } from "../api";
 import type { AuditEvent } from "../types";
@@ -9,9 +9,25 @@ const rows = ref<AuditEvent[]>([]),
   offset = ref(0),
   selected = ref<AuditEvent>(),
   drawer = ref(false);
+const search = ref(""),
+  resource = ref("ALL"),
+  status = ref("ALL");
+const filtered = computed(() =>
+  rows.value.filter(
+    (r) =>
+      (resource.value === "ALL" ||
+        (resource.value === "DHCP"
+          ? r.recordType === "DHCP4"
+          : r.recordType !== "DHCP4")) &&
+      (status.value === "ALL" || status.value === r.status) &&
+      `${r.recordName} ${r.actor} ${r.detail}`
+        .toLowerCase()
+        .includes(search.value.toLowerCase()),
+  ),
+);
 const columns = [
   { title: "操作时间", key: "time", width: 180 },
-  { title: "操作", key: "action", width: 85 },
+  { title: "操作", key: "action", width: 120 },
   { title: "记录", key: "record" },
   { title: "操作人", dataIndex: "actor", width: 120 },
   { title: "状态", key: "status", width: 100 },
@@ -21,6 +37,10 @@ const actions: Record<string, string> = {
     CREATE: "新增",
     UPDATE: "修改",
     DELETE: "删除",
+    CONFIG: "DHCP 配置",
+    RESERVATION: "保留地址",
+    RELEASE: "释放租约",
+    DDNS: "重发 DNS",
   },
   statuses: Record<string, string> = {
     SUCCESS: "已完成",
@@ -41,9 +61,11 @@ async function load() {
 function json(v: string) {
   try {
     const value = JSON.parse(v);
-    return value
+    return value && !Array.isArray(value) && Array.isArray(value.values)
       ? `${value.name} · ${value.type} · TTL ${value.ttl}s\n${value.values.join("\n")}`
-      : "无";
+      : value
+        ? JSON.stringify(value, null, 2)
+        : "无";
   } catch {
     return v;
   }
@@ -54,24 +76,47 @@ onMounted(load);
   <div class="page-heading">
     <div>
       <h1>操作审计</h1>
-      <p>追溯记录的修改前后内容与提交结果。</p>
+      <p>查看 DNS、DHCP 和保留地址的变更，以及双节点同步结果。</p>
     </div>
     <a-button :loading="loading" @click="load"
       ><ReloadOutlined />刷新日志</a-button
     >
   </div>
   <a-alert v-if="error" :message="error" type="error" show-icon />
-  <div class="surface audit-surface">
-    <div class="section-heading">
-      <div>
-        <h2>操作审计</h2>
-        <p>待核实表示操作结果尚未完整确认，需要检查实际 DNS 记录。</p>
-      </div>
-      <a-tag>持久化存储</a-tag>
+  <div class="records-toolbar audit-toolbar">
+    <a-input
+      v-model:value="search"
+      placeholder="搜索对象、操作人或结果"
+      aria-label="搜索审计"
+      allow-clear
+    /><a-select
+      v-model:value="resource"
+      :options="[
+        { value: 'ALL', label: '全部资源' },
+        { value: 'DNS', label: 'DNS' },
+        { value: 'DHCP', label: 'DHCP' },
+      ]"
+      style="width: 140px"
+      aria-label="审计资源"
+    /><a-select
+      v-model:value="status"
+      :options="[
+        { value: 'ALL', label: '全部结果' },
+        { value: 'SUCCESS', label: '已完成' },
+        { value: 'FAILED', label: '失败' },
+        { value: 'PENDING', label: '待核实' },
+      ]"
+      style="width: 140px"
+      aria-label="审计结果"
+    />
+  </div>
+  <div class="records-table-panel">
+    <div class="table-caption">
+      <span>操作事件</span><span class="muted">筛选当前页 · 每页 50 条</span>
     </div>
     <a-table
       :columns="columns"
-      :data-source="rows"
+      :data-source="filtered"
       row-key="id"
       :loading="loading"
       :pagination="false"
@@ -92,12 +137,17 @@ onMounted(load);
                   ? 'blue'
                   : 'orange'
             "
-            >{{ actions[record.action] }}</a-tag
+            >{{ actions[record.action] || record.action }}</a-tag
           ></template
         ><template v-else-if="column.key === 'record'"
           ><div class="mono">{{ record.recordName }}</div>
           <div class="record-fqdn">
-            {{ record.recordType }} · {{ record.zoneId }}
+            {{
+              record.recordType === "DHCP4"
+                ? "DHCP"
+                : "DNS · " + record.recordType
+            }}
+            · {{ record.zoneId }}
           </div></template
         ><template v-else-if="column.key === 'status'"
           ><a-badge
@@ -124,7 +174,7 @@ onMounted(load);
         ><div class="audit-empty">
           <ClockCircleOutlined />
           <h3>变更历史从这里开始</h3>
-          <p>添加、修改或删除一条记录后，操作会出现在这里。</p>
+          <p>DNS 和 DHCP 配置提交后，结果会出现在这里。</p>
         </div></template
       ></a-table
     >
