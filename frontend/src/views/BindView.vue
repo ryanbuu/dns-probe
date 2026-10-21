@@ -39,6 +39,11 @@ const rows = computed(() =>
   (selected.value?.objects || []).filter(
     (o) =>
       kinds.value.includes(o.kind) &&
+      !(
+        props.section === "zones" &&
+        o.kind === "zone" &&
+        o.fields.type === "forward"
+      ) &&
       (kindFilter.value === "all" || o.kind === kindFilter.value) &&
       `${o.name} ${o.kind} ${o.view} ${Object.values(o.fields).join(" ")}`
         .toLowerCase()
