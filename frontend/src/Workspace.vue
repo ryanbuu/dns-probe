@@ -25,6 +25,7 @@ const GatewayView = defineAsyncComponent(
 const ForwardingView = defineAsyncComponent(
   () => import("./views/ForwardingView.vue"),
 );
+const BindView = defineAsyncComponent(() => import("./views/BindView.vue"));
 const { message } = AntdApp.useApp();
 const meta = ref<Meta>(),
   user = ref<User>(),
@@ -348,6 +349,17 @@ onUnmounted(() => {
           @changed="loadZones"
         />
         <ForwardingView v-else-if="page === 'forwarding'" :admin="user.admin" />
+        <BindView
+          v-else-if="page.startsWith('bind-') && user.admin"
+          :key="page"
+          :section="page.slice(5)"
+          @changed="loadZones"
+        />
+        <a-result
+          v-else-if="page.startsWith('bind-')"
+          status="403"
+          title="需要管理员权限"
+        />
         <DhcpView
           v-else-if="page.startsWith('dhcp-')"
           :key="page"

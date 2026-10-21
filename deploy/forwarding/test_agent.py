@@ -71,6 +71,16 @@ class AgentTest(unittest.TestCase):
         self.assertEqual(before["revision"], self.instance.snapshot()["revision"])
         self.assertIsNone(self.instance.snapshot()["pending"])
 
+    def test_bind_manager_pending_transaction_blocks_forwarding_mutations(self):
+        state = self.root / "bind-state"
+        state.mkdir()
+        self.instance.config["bindStateDirectory"] = str(state)
+        before = self.instance.snapshot()
+        (state / "active.json").write_text(json.dumps(dict(id=str(uuid.uuid4()), status="prepared")))
+        self.assertEqual("BIND", self.instance.snapshot()["pending"]["module"])
+        with self.assertRaises(agent.Failure):
+            self.instance.handle(dict(operation="prepare", transaction=str(uuid.uuid4()), revision=before["revision"], rules=[rule("example.org")]))
+
     def test_prepared_files_remain_readable_by_bind_with_private_process_umask(self):
         previous = os.umask(0o077)
         try:

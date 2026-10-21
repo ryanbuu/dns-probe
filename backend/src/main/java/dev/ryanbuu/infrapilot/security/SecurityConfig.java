@@ -55,6 +55,8 @@ public class SecurityConfig {
                     .hasRole("ADMIN")
                     .requestMatchers("/api/gateway", "/api/gateway/**")
                     .hasRole("ADMIN")
+                    .requestMatchers("/api/bind", "/api/bind/**")
+                    .hasRole("ADMIN")
                     .requestMatchers("/api/forwarding/backups")
                     .hasRole("ADMIN")
                     .requestMatchers(

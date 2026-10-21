@@ -214,6 +214,10 @@ class Agent:
         self.runner = runner or self.run
 
     def run(self, args):
+        # The full configuration can reference plugins managed by the BIND UI.
+        # Loading those while validating must use named's account, never root.
+        if args[0] == "named-checkconf":
+            args = ["runuser", "-u", "bind", "--"] + args
         try:
             p = subprocess.run(args, capture_output=True, text=True, timeout=25,
                                env={"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C"})
@@ -245,6 +249,9 @@ class Agent:
             if canonical([r for v, r in actual if v == view]) != expected:
                 drift = True
         pending = json.loads((self.state / "active.json").read_text()) if (self.state / "active.json").exists() else None
+        bind_pending = Path(self.config.get("bindStateDirectory", "/var/lib/infrapilot-bind")) / "active.json"
+        if pending is None and bind_pending.exists():
+            pending = {**json.loads(bind_pending.read_text()), "module": "BIND"}
         return dict(node=self.config["id"], rules=rules, digest=digest(rules),
                     revision=digest([effective, generation, rendered]), drift=drift,
                     pending=pending, protected=sorted(protected), generation=generation)
@@ -274,7 +281,7 @@ class Agent:
             source = source.replace('"' + old + '"', '"' + str(path / name) + '"')
         check = path / "validation.conf"
         try:
-            atomic(check, source, 0o600)
+            atomic(check, source, 0o640, gid)
             self.runner(["named-checkconf", str(check)])
         finally:
             check.unlink(missing_ok=True)

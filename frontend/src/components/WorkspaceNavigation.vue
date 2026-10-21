@@ -24,7 +24,9 @@ const openKeys = ref(["dns", "dhcp"]);
 const menu = computed(() =>
   routes.filter(
     (r) =>
-      ((r.id !== "audit" && r.group !== "Application Gateway") ||
+      ((r.id !== "audit" &&
+        !r.id.startsWith("bind-") &&
+        r.group !== "Application Gateway") ||
         props.user.admin) &&
       `${r.title} ${r.group} ${r.group === "Application Gateway" ? "网关" : ""}`
         .toLowerCase()

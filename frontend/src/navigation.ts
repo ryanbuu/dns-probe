@@ -13,6 +13,21 @@ export const routes = [
   { id: "overview", title: "概览", icon: AppstoreOutlined, group: "工作空间" },
   { id: "records", title: "解析记录", icon: GlobalOutlined, group: "DNS" },
   { id: "forwarding", title: "条件转发", icon: GlobalOutlined, group: "DNS" },
+  ...[
+    ["zones", "权威区域"],
+    ["resolver", "递归与缓存"],
+    ["access", "访问控制与 Views"],
+    ["dnssec", "DNSSEC 与密钥"],
+    ["transport", "加密传输"],
+    ["logging", "日志与统计"],
+    ["operations", "运维工具"],
+    ["advanced", "原生配置"],
+  ].map(([id, title]) => ({
+    id: `bind-${id}`,
+    title: title!,
+    icon: GlobalOutlined,
+    group: "DNS",
+  })),
   {
     id: "dhcp-subnets",
     title: "子网与地址池",

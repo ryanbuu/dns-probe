@@ -32,6 +32,12 @@ infrapilot:
   viewer-password: ${INFRAPILOT_VIEWER_PASSWORD:}
   timeout-seconds: 5
 
+  bind:
+    enabled: ${INFRAPILOT_BIND_ENABLED:false}
+    private-key-file: ${INFRAPILOT_BIND_PRIVATE_KEY_FILE:}
+    known-hosts-file: ${INFRAPILOT_BIND_KNOWN_HOSTS_FILE:}
+    backup-directory: ${INFRAPILOT_BIND_BACKUP_DIRECTORY:./data/bind}
+
   forwarding:
     enabled: ${INFRAPILOT_FORWARDING_ENABLED:false}
     private-key-file: ${INFRAPILOT_FORWARDING_PRIVATE_KEY_FILE:}
