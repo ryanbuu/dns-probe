@@ -27,7 +27,7 @@ public class AuditService {
       Rrset before,
       Rrset after) {
     Map<String, Object> args = new HashMap<>();
-    args.put("occurred_at", OffsetDateTime.now());
+    args.put("occurred_at", java.sql.Timestamp.from(java.time.Instant.now()));
     args.put("actor", actor);
     args.put("zone_id", zone);
     args.put("action", action);
