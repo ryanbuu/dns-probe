@@ -6,7 +6,6 @@ import {
   CloseOutlined,
   ClusterOutlined,
   GlobalOutlined,
-  LockOutlined,
   LogoutOutlined,
 } from "@ant-design/icons-vue";
 import { routes } from "../navigation";
@@ -47,12 +46,6 @@ const menu = computed(() =>
       >
         <CloseOutlined />
       </a-button>
-    </div>
-    <div class="workspace-chip">
-      <a-avatar size="small">{{
-        user.username.slice(0, 1).toUpperCase()
-      }}</a-avatar>
-      <div><strong>我的工作空间</strong><small>内部 DNS 管理</small></div>
     </div>
     <div class="nav-search">
       <a-input
@@ -100,9 +93,6 @@ const menu = computed(() =>
         <template #icon><AuditOutlined /></template>操作审计
       </a-menu-item>
     </a-menu>
-    <div class="sidebar-protocol">
-      <LockOutlined /><span>DNS · DHCP · 高可用</span>
-    </div>
     <div class="sidebar-user">
       <a-avatar size="small">{{
         user.username.slice(0, 1).toUpperCase()

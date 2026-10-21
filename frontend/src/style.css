@@ -150,23 +150,6 @@ a:focus-visible {
   letter-spacing: -0.5px;
   line-height: 1;
 }
-.workspace-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 24px 20px 28px;
-}
-.workspace-chip strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-}
-.workspace-chip small {
-  display: block;
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
 .nav-label {
   color: var(--text-secondary);
   font-size: 12px;
@@ -174,15 +157,6 @@ a:focus-visible {
 }
 .sidebar-layout .ant-menu {
   background: transparent;
-}
-.sidebar-protocol {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  padding: 18px 20px;
-  border-top: 1px solid var(--border);
 }
 .sidebar-user {
   display: flex;
@@ -1257,20 +1231,12 @@ a:focus-visible {
   overscroll-behavior: contain;
 }
 .sidebar-top,
-.workspace-chip,
 .nav-search,
-.sidebar-protocol,
 .sidebar-user {
   flex-shrink: 0;
 }
-.workspace-chip {
-  margin: 20px;
-}
 .nav-search {
-  padding: 0 16px 18px;
-}
-.sidebar-protocol {
-  font-size: 11px;
+  padding: 20px 16px 16px;
 }
 .resource-eyebrow {
   font-size: 12px;
