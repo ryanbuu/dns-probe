@@ -27,6 +27,7 @@ import {
   Radio,
   Switch,
   Result,
+  Space,
 } from "ant-design-vue";
 import "ant-design-vue/dist/reset.css";
 import App from "./App.vue";
@@ -61,6 +62,7 @@ for (const component of [
   Radio,
   Switch,
   Result,
+  Space,
 ])
   app.use(component);
 app.mount("#app");

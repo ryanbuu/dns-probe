@@ -12,6 +12,7 @@ import {
 export const routes = [
   { id: "overview", title: "概览", icon: AppstoreOutlined, group: "工作空间" },
   { id: "records", title: "解析记录", icon: GlobalOutlined, group: "DNS" },
+  { id: "forwarding", title: "条件转发", icon: GlobalOutlined, group: "DNS" },
   {
     id: "dhcp-subnets",
     title: "子网与地址池",

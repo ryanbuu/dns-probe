@@ -32,6 +32,12 @@ infrapilot:
   viewer-password: ${INFRAPILOT_VIEWER_PASSWORD:}
   timeout-seconds: 5
 
+  forwarding:
+    enabled: ${INFRAPILOT_FORWARDING_ENABLED:false}
+    private-key-file: ${INFRAPILOT_FORWARDING_PRIVATE_KEY_FILE:}
+    known-hosts-file: ${INFRAPILOT_FORWARDING_KNOWN_HOSTS_FILE:}
+    backup-directory: ${INFRAPILOT_FORWARDING_BACKUP_DIRECTORY:./data/conditional-forwarding}
+
   gateway:
     enabled: ${INFRAPILOT_GATEWAY_ENABLED:false}
     url: ${INFRAPILOT_GATEWAY_URL:}

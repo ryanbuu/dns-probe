@@ -21,7 +21,9 @@ const filtered = computed(() =>
           ? r.recordType === "DHCP4"
           : resource.value === "GATEWAY"
             ? r.recordType === "GATEWAY"
-            : !["DHCP4", "GATEWAY"].includes(r.recordType))) &&
+            : resource.value === "FORWARDING"
+              ? r.recordType === "FORWARDING"
+              : !["DHCP4", "GATEWAY", "FORWARDING"].includes(r.recordType))) &&
       (status.value === "ALL" || status.value === r.status) &&
       `${r.recordName} ${r.actor} ${r.detail}`
         .toLowerCase()
@@ -45,6 +47,7 @@ const actions: Record<string, string> = {
     RELEASE: "释放租约",
     DDNS: "重发 DNS",
     EXPORT: "导出配置",
+    RESTORE: "恢复配置",
   },
   statuses: Record<string, string> = {
     SUCCESS: "已完成",
@@ -105,6 +108,7 @@ onMounted(load);
         { value: 'DNS', label: 'DNS' },
         { value: 'DHCP', label: 'DHCP' },
         { value: 'GATEWAY', label: 'Application Gateway' },
+        { value: 'FORWARDING', label: '条件转发' },
       ]"
       style="width: 140px"
       aria-label="审计资源"
@@ -161,7 +165,9 @@ onMounted(load);
                 ? "DHCP"
                 : record.recordType === "GATEWAY"
                   ? "Application Gateway"
-                  : "DNS · " + record.recordType
+                  : record.recordType === "FORWARDING"
+                    ? "DNS · 条件转发"
+                    : "DNS · " + record.recordType
             }}
             · {{ record.zoneId }}
           </div></template

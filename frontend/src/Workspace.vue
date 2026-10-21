@@ -22,6 +22,9 @@ import BrandIdentity from "./components/BrandIdentity.vue";
 const GatewayView = defineAsyncComponent(
   () => import("./views/GatewayView.vue"),
 );
+const ForwardingView = defineAsyncComponent(
+  () => import("./views/ForwardingView.vue"),
+);
 const { message } = AntdApp.useApp();
 const meta = ref<Meta>(),
   user = ref<User>(),
@@ -344,6 +347,7 @@ onUnmounted(() => {
           :admin="user.admin"
           @changed="loadZones"
         />
+        <ForwardingView v-else-if="page === 'forwarding'" :admin="user.admin" />
         <DhcpView
           v-else-if="page.startsWith('dhcp-')"
           :key="page"

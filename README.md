@@ -19,6 +19,7 @@
 - 修改前校验记录版本，DNS UPDATE 携带旧记录集前置条件，未签名区域额外校验 SOA；检测到并发冲突返回 409。
 - Kea 区域只读，DHCID 名称、DNS 系统记录及已委派子域保护。生产中需同时配置 BIND 侧权限。
 - 主从实际 DNS 查询对比：回答、SOA 序列号、响应耗时和错误信息。
+- [条件转发](docs/CONDITIONAL-FORWARDING.md)：接入现有 DoT 规则，管理 DNS / DoT 上游、TLS 校验域名和转发模式；双节点预校验、重载回读、持久化事务和备份恢复。
 - Kea DHCPv4 子网、地址池和 MAC 保留地址管理，租约查询/释放、重发 DDNS，以及双节点 HA 状态。
 - 配置变更先在两台 Kea 预校验，保存时保留各自 HA/DDNS 配置，并记录审计；部分失败时尝试回滚。
 - [Application Gateway](docs/APPLICATION-GATEWAY.md)：接入 APISIX Admin API，管理路由、服务、上游、消费者/凭据/分组、证书、全局规则、插件配置/元数据、TCP/UDP 路由、Protobuf 和 Secret；查看实时插件与 Schema、只读节点配置。
@@ -27,7 +28,7 @@
 - Docker Compose、接入模板、后端测试、浏览器端到端测试和 GitHub Actions。
 - 独立演示模式：DNS/DHCP/网关示例数据保存在后端内存中，重启重置；审计日志与网关变更备份单独持久化。
 
-当前不管理 BIND 全局配置、TSIG 密钥、DNSSEC 密钥、区域创建/删除或主从提升。A 与 PTR 是不同区域的独立操作，不提供跨区域事务或自动 PTR 联动。DHCP 目前支持 IPv4，不自动配置路由器、VLAN 或 relay。
+当前不管理 BIND 全局配置、TSIG 密钥、DNSSEC 密钥、权威区域创建/删除或主从提升。A 与 PTR 是不同区域的独立操作，不提供跨区域事务或自动 PTR 联动。DHCP 目前支持 IPv4，不自动配置路由器、VLAN 或 relay。
 
 ## 本地启动
 
