@@ -75,68 +75,69 @@ async function save() {
 }
 </script>
 <template>
-  <a-modal
-    :open="open"
-    :title="record ? '编辑解析记录' : '添加解析记录'"
-    :width="660"
-    :mask-closable="false"
-    :keyboard="!busy"
-    :closable="!busy"
-    @cancel="!busy && emit('close')"
+  <section
+    v-if="open"
+    class="inline-editor"
+    :aria-label="record ? '编辑解析记录' : '添加解析记录'"
   >
-    <div class="editor-zone">
-      {{ zone.name }} <a-tag color="blue">主区域</a-tag>
+    <div class="inline-editor-heading">
+      <h3>{{ record ? "编辑解析记录" : "添加解析记录" }}</h3>
+      <a-button
+        type="text"
+        :disabled="busy"
+        aria-label="关闭记录编辑"
+        @click="emit('close')"
+        >取消</a-button
+      >
     </div>
-    <template v-if="!review">
-      <a-form layout="vertical" class="record-form">
+    <a-form v-if="!review" layout="vertical" class="record-form">
+      <div class="editor-fields">
+        <a-form-item label="类型"
+          ><a-select
+            v-model:value="form.type"
+            :disabled="!!record"
+            :options="types.map((value) => ({ value }))"
+            aria-label="记录类型"
+        /></a-form-item>
         <a-form-item label="记录名称" required
           ><a-input
             v-model:value="form.name"
             :disabled="!!record"
-            placeholder="例如 nas，或完整域名 nas.intra.example.com."
+            placeholder="例如 www，或使用 @ 表示根域名"
             aria-label="记录名称"
-          /><span class="field-help"
-            >相对名称会自动补全当前区域；@ 表示区域根。</span
-          ></a-form-item
-        >
-        <div class="form-pair">
-          <a-form-item label="记录类型"
-            ><a-select
-              v-model:value="form.type"
-              :disabled="!!record"
-              :options="types.map((value) => ({ value }))"
-              aria-label="记录类型" /></a-form-item
-          ><a-form-item label="TTL（秒）"
-            ><a-input-number
-              v-model:value="form.ttl"
-              :min="0"
-              :max="2147483647"
-              style="width: 100%"
-              aria-label="TTL"
-          /></a-form-item>
-        </div>
-        <a-form-item label="记录值" required
-          ><a-textarea
-            v-model:value="form.values"
-            :rows="5"
-            :placeholder="hints[form.type]"
-            aria-label="记录值"
-          /><span class="field-help"
-            >{{ hints[form.type] }} ·
-            多个值每行一个，将一起保存为同一记录集。</span
-          ></a-form-item
-        >
-      </a-form>
-    </template>
-    <template v-else>
-      <a-alert
+        /></a-form-item>
+        <a-form-item label="TTL（秒）"
+          ><a-input-number
+            v-model:value="form.ttl"
+            :min="0"
+            :max="2147483647"
+            style="width: 100%"
+            aria-label="TTL"
+        /></a-form-item>
+      </div>
+      <a-form-item label="记录值" required
+        ><a-textarea
+          v-model:value="form.values"
+          :rows="3"
+          :placeholder="hints[form.type]"
+          aria-label="记录值"
+        /><span class="field-help"
+          >{{ hints[form.type] }}。多个值每行一个。</span
+        ></a-form-item
+      >
+      <p class="field-help">
+        相对名称自动补全为 {{ zone.name }}；@ 表示区域根。
+      </p>
+    </a-form>
+    <template v-else
+      ><a-alert
         message="确认这次变更"
-        description="更新将提交到主节点。同一记录集中的现有值会替换为下方内容，其他记录保持不变。"
+        description="确认记录值后提交，变更将自动同步到从节点。"
         type="info"
         show-icon
       />
       <div class="change-preview">
-        <div class="mono preview-name">
+        <div class="preview-name mono">
           {{ form.name }} <a-tag>{{ form.type }}</a-tag
           ><span>TTL {{ form.ttl }}s</span>
         </div>
@@ -148,17 +149,17 @@ async function save() {
           <span>{{ record ? "修改后" : "新增值" }}</span>
           <pre>{{ values.join("\n") }}</pre>
         </div>
-      </div>
-    </template>
-    <template #footer
-      ><a-button
+      </div></template
+    >
+    <div class="editor-footer">
+      <a-button
         :disabled="busy"
         @click="review ? (review = false) : emit('close')"
         >{{ review ? "返回修改" : "取消" }}</a-button
       ><a-button v-if="!review" type="primary" @click="next">预览变更</a-button
       ><a-button v-else type="primary" :loading="busy" @click="save"
         >确认保存</a-button
-      ></template
-    >
-  </a-modal>
+      >
+    </div>
+  </section>
 </template>

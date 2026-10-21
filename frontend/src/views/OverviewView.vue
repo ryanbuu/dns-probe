@@ -19,9 +19,8 @@ const healthy = computed(() => props.zones.filter((z) => !z.error).length);
 <template>
   <div class="page-heading">
     <div>
-      <div class="eyebrow">YOUR DNS, IN ONE PLACE</div>
-      <h1>域名有序，服务可达。</h1>
-      <p>查看区域状态，维护内部服务，让每一次解析变更都有迹可循。</p>
+      <h1>DNS 概览</h1>
+      <p>查看 DNS 区域、记录数量与主从服务器状态。</p>
     </div>
     <span class="overview-date">{{
       new Intl.DateTimeFormat("zh-CN", { dateStyle: "long" }).format(new Date())
@@ -91,7 +90,7 @@ const healthy = computed(() => props.zones.filter((z) => !z.error).length);
     <aside class="overview-aside">
       <div class="topology-card">
         <span class="inline-label">DNS TOPOLOGY</span>
-        <h2>一个入口，清晰的流向。</h2>
+        <h2>主从服务器</h2>
         <div class="topology-node app-node">
           <img src="/favicon.svg" alt="" />
           <div><strong>DNS Probe</strong><span>记录管理与变更审计</span></div>

@@ -94,4 +94,4 @@ CI 以 Java 21 和 Node.js 22 构建、测试。测试截图使用演示数据�
 
 [API 说明](docs/API.md) · [BIND 接入说明](docs/BIND-INTEGRATION.md)
 
-前端使用 Ant Design Vue 默认主题；不覆盖组件配色、圆角、字号和状态样式，仅保留应用布局与响应式尺寸适配。
+前端继续使用 Ant Design Vue 默认组件主题，控制台布局参考 Cloudflare DNS 面板：区域切换、通栏记录表格、展开编辑、筛选与列显示，以及手机端记录卡片。当前筛选记录可导出为 zone 文本片段。

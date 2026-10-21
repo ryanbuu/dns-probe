@@ -53,8 +53,7 @@ onMounted(load);
 <template>
   <div class="page-heading">
     <div>
-      <div class="eyebrow">CHANGE HISTORY</div>
-      <h1>每一次变更，都有记录。</h1>
+      <h1>操作审计</h1>
       <p>追溯记录的修改前后内容与提交结果。</p>
     </div>
     <a-button :loading="loading" @click="load"
