@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  onMounted,
+  onUnmounted,
+  ref,
+} from "vue";
 import { App as AntdApp } from "ant-design-vue";
 import { MenuOutlined } from "@ant-design/icons-vue";
 import { routes } from "./navigation";
@@ -13,6 +19,9 @@ import DhcpView from "./views/DhcpView.vue";
 import ThemeSwitcher from "./components/ThemeSwitcher.vue";
 import HelpHint from "./components/HelpHint.vue";
 import BrandIdentity from "./components/BrandIdentity.vue";
+const GatewayView = defineAsyncComponent(
+  () => import("./views/GatewayView.vue"),
+);
 const { message } = AntdApp.useApp();
 const meta = ref<Meta>(),
   user = ref<User>(),
@@ -340,7 +349,17 @@ onUnmounted(() => {
           :key="page"
           :section="section()"
           :admin="user.admin"
-        /><AuditView v-else-if="page === 'audit' && user.admin" />
+        /><GatewayView
+          v-else-if="page.startsWith('gateway-') && user.admin"
+          :key="page"
+          :section="page.slice(8)"
+        />
+        <a-result
+          v-else-if="page.startsWith('gateway-')"
+          status="403"
+          title="需要管理员权限"
+        />
+        <AuditView v-else-if="page === 'audit' && user.admin" />
         <footer class="page-footer">
           <span>InfraPilot</span><span>v{{ meta?.version }}</span>
         </footer>

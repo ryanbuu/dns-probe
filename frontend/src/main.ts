@@ -23,10 +23,15 @@ import {
   Table,
   Tag,
   Tooltip,
+  Tabs,
+  Radio,
+  Switch,
+  Result,
 } from "ant-design-vue";
 import "ant-design-vue/dist/reset.css";
 import App from "./App.vue";
 import "./style.css";
+import "./gateway.css";
 const app = createApp(App);
 for (const component of [
   ConfigProvider,
@@ -52,6 +57,10 @@ for (const component of [
   Table,
   Tag,
   Tooltip,
+  Tabs,
+  Radio,
+  Switch,
+  Result,
 ])
   app.use(component);
 app.mount("#app");

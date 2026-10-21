@@ -6,6 +6,7 @@ import {
   TeamOutlined,
   DatabaseOutlined,
   SafetyCertificateOutlined,
+  ApiOutlined,
 } from "@ant-design/icons-vue";
 
 export const routes = [
@@ -30,5 +31,21 @@ export const routes = [
     icon: SafetyCertificateOutlined,
     group: "DHCP",
   },
+  ...[
+    ["overview", "网关概览"],
+    ["routes", "路由"],
+    ["services", "服务"],
+    ["upstreams", "上游"],
+    ["consumers", "消费者"],
+    ["ssls", "证书"],
+    ["plugins", "插件"],
+    ["advanced", "高级配置"],
+    ["backups", "变更备份"],
+  ].map(([id, title]) => ({
+    id: `gateway-${id}`,
+    title: title!,
+    icon: ApiOutlined,
+    group: "Application Gateway",
+  })),
   { id: "audit", title: "操作审计", icon: AuditOutlined, group: "管理" },
 ];

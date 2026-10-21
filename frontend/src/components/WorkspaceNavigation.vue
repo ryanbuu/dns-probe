@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import {
   AppstoreOutlined,
   AuditOutlined,
@@ -7,6 +7,7 @@ import {
   ClusterOutlined,
   GlobalOutlined,
   LogoutOutlined,
+  ApiOutlined,
 } from "@ant-design/icons-vue";
 import { routes } from "../navigation";
 import type { User } from "../types";
@@ -23,8 +24,20 @@ const openKeys = ref(["dns", "dhcp"]);
 const menu = computed(() =>
   routes.filter(
     (r) =>
-      (r.id !== "audit" || props.user.admin) && r.title.includes(search.value),
+      ((r.id !== "audit" && r.group !== "Application Gateway") ||
+        props.user.admin) &&
+      `${r.title} ${r.group} ${r.group === "Application Gateway" ? "网关" : ""}`
+        .toLowerCase()
+        .includes(search.value.toLowerCase()),
   ),
+);
+watch(
+  () => props.page,
+  (page) => {
+    if (page.startsWith("gateway-") && !openKeys.value.includes("gateway"))
+      openKeys.value.push("gateway");
+  },
+  { immediate: true },
 );
 </script>
 
@@ -84,6 +97,21 @@ const menu = computed(() =>
         >
           {{ item.title }}
         </a-menu-item>
+      </a-sub-menu>
+      <a-sub-menu
+        v-if="menu.some((m) => m.group === 'Application Gateway')"
+        key="gateway"
+      >
+        <template #icon><ApiOutlined /></template>
+        <template #title
+          ><span class="gateway-nav-label">Application Gateway</span></template
+        >
+        <a-menu-item
+          v-for="item in menu.filter((m) => m.group === 'Application Gateway')"
+          :key="item.id"
+          @click="emit('navigate', item.id)"
+          >{{ item.title }}</a-menu-item
+        >
       </a-sub-menu>
       <a-menu-item
         v-if="menu.some((m) => m.id === 'audit')"

@@ -19,7 +19,9 @@ const filtered = computed(() =>
       (resource.value === "ALL" ||
         (resource.value === "DHCP"
           ? r.recordType === "DHCP4"
-          : r.recordType !== "DHCP4")) &&
+          : resource.value === "GATEWAY"
+            ? r.recordType === "GATEWAY"
+            : !["DHCP4", "GATEWAY"].includes(r.recordType))) &&
       (status.value === "ALL" || status.value === r.status) &&
       `${r.recordName} ${r.actor} ${r.detail}`
         .toLowerCase()
@@ -42,6 +44,7 @@ const actions: Record<string, string> = {
     RESERVATION: "保留地址",
     RELEASE: "释放租约",
     DDNS: "重发 DNS",
+    EXPORT: "导出配置",
   },
   statuses: Record<string, string> = {
     SUCCESS: "已完成",
@@ -80,7 +83,7 @@ onMounted(load);
         <h1>操作审计</h1>
         <HelpHint
           label="审计说明"
-          text="查看 DNS、DHCP 和保留地址的变更及双节点同步结果。"
+          text="查看 DNS、DHCP、Application Gateway 的配置变更、同步与回读结果。"
         />
       </div>
     </div>
@@ -101,6 +104,7 @@ onMounted(load);
         { value: 'ALL', label: '全部资源' },
         { value: 'DNS', label: 'DNS' },
         { value: 'DHCP', label: 'DHCP' },
+        { value: 'GATEWAY', label: 'Application Gateway' },
       ]"
       style="width: 140px"
       aria-label="审计资源"
@@ -155,7 +159,9 @@ onMounted(load);
             {{
               record.recordType === "DHCP4"
                 ? "DHCP"
-                : "DNS · " + record.recordType
+                : record.recordType === "GATEWAY"
+                  ? "Application Gateway"
+                  : "DNS · " + record.recordType
             }}
             · {{ record.zoneId }}
           </div></template

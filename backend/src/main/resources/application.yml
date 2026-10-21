@@ -32,6 +32,13 @@ infrapilot:
   viewer-password: ${INFRAPILOT_VIEWER_PASSWORD:}
   timeout-seconds: 5
 
+  gateway:
+    enabled: ${INFRAPILOT_GATEWAY_ENABLED:false}
+    url: ${INFRAPILOT_GATEWAY_URL:}
+    api-key: ${INFRAPILOT_GATEWAY_API_KEY:}
+    backup-directory: ${INFRAPILOT_GATEWAY_BACKUP_DIRECTORY:./data/application-gateway}
+    runtime-config-file: ${INFRAPILOT_GATEWAY_RUNTIME_CONFIG_FILE:}
+
   dhcp:
     enabled: ${INFRAPILOT_DHCP_ENABLED:false}
     nodes:
