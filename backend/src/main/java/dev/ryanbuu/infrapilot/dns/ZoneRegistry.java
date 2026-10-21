@@ -64,7 +64,7 @@ public class ZoneRegistry {
         new Zone(
             "dhcp",
             "dhcp.intra.example.com.",
-            "Kea 自动维护 · Internal / IoT",
+            "客户端动态注册 · Internal / IoT",
             true,
             null,
             p,

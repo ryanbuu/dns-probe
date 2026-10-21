@@ -36,12 +36,12 @@ infrapilot:
     enabled: ${INFRAPILOT_DHCP_ENABLED:false}
     nodes:
       - id: kea1
-        label: kea1
+        label: DHCP 主节点
         url: ${INFRAPILOT_KEA1_API_URL:}
         username: ${INFRAPILOT_KEA1_API_USERNAME:}
         password: ${INFRAPILOT_KEA1_API_PASSWORD:}
       - id: kea2
-        label: kea2
+        label: DHCP 备节点
         url: ${INFRAPILOT_KEA2_API_URL:}
         username: ${INFRAPILOT_KEA2_API_USERNAME:}
         password: ${INFRAPILOT_KEA2_API_PASSWORD:}

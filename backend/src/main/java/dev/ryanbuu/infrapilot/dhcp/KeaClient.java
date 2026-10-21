@@ -38,8 +38,8 @@ public class KeaClient {
   public List<DhcpProperties.Node> nodes() {
     return settings.getMode().equals("demo")
         ? List.of(
-            new DhcpProperties.Node("kea1", "kea1", "", "", ""),
-            new DhcpProperties.Node("kea2", "kea2", "", "", ""))
+            new DhcpProperties.Node("kea1", "DHCP 主节点", "", "", ""),
+            new DhcpProperties.Node("kea2", "DHCP 备节点", "", "", ""))
         : p.getNodes();
   }
 
@@ -49,7 +49,7 @@ public class KeaClient {
         nodes().stream()
             .filter(x -> x.id().equals(id))
             .findFirst()
-            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Kea 节点不存在"));
+            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "DHCP 服务节点不存在"));
     try {
       URI uri = URI.create(n.url());
       if (!Set.of("http", "https").contains(uri.getScheme())
@@ -76,7 +76,7 @@ public class KeaClient {
       int code = result.path("result").asInt(-1);
       if (code != 0 && !(code == 3 && Set.of("lease4-get-page", "lease4-del").contains(command)))
         throw new ApiException(
-            HttpStatus.BAD_GATEWAY, n.label() + " 拒绝 " + command + "，请检查 Kea 配置或命令权限");
+            HttpStatus.BAD_GATEWAY, n.label() + " 拒绝 " + command + "，请检查 DHCP 服务配置或命令权限");
       return result;
     } catch (ApiException e) {
       throw e;

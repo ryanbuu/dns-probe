@@ -77,7 +77,7 @@ class DhcpServiceTest {
     assertThat(client.commands)
         .containsSubsequence(
             "kea2:config-set", "kea2:config-write", "kea1:config-set", "kea1:config-write");
-    verify(audit).finish(0, "SUCCESS", "两台 Kea 已校验、更新并持久化");
+    verify(audit).finish(0, "SUCCESS", "主备节点已校验、更新并持久化");
   }
 
   @Test

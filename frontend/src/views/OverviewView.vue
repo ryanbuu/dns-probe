@@ -81,7 +81,7 @@ onMounted(refresh);
           ? "HA 正常 · 配置一致"
           : dhcp?.enabled
             ? "请检查节点状态"
-            : "未连接 Kea"
+            : "未连接 DHCP 服务"
       }}</small>
     </div>
   </div>
@@ -130,7 +130,7 @@ onMounted(refresh);
           </div>
         </div>
         <div class="resource-list-status">
-          <a-tag>{{ zone.readOnly ? "Kea 自动维护" : "手动维护" }}</a-tag
+          <a-tag>{{ zone.readOnly ? "动态注册" : "静态配置" }}</a-tag
           ><a-badge
             :status="zone.error ? 'error' : 'success'"
             :text="zone.error ? '读取失败' : '正常'"
@@ -192,7 +192,7 @@ onMounted(refresh);
       <div class="service-summary">
         <ClusterOutlined />
         <div>
-          <strong>Kea DHCP</strong>
+          <strong>DHCP 地址分配</strong>
           <p>
             {{
               dhcp?.enabled ? "主备管理与租约查询已连接" : "尚未连接管理接口"

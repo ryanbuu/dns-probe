@@ -65,7 +65,7 @@ test("record lifecycle, protected zones, comparison and audit", async ({
     .click();
   await expect(page.getByRole("button", { name: "添加记录" })).toBeDisabled();
   await expect(
-    page.getByText("此区域由 Kea 自动维护", { exact: true }),
+    page.getByText("此区域采用动态注册管理", { exact: true }),
   ).toBeVisible();
   await page.getByRole("menuitem", { name: /操作审计/ }).click();
   await expect(
@@ -170,7 +170,7 @@ test("DHCP reservations, subnet lifecycle and HA views", async ({ page }) => {
     .fill("browser-reservation");
   await page.getByRole("button", { name: "校验并预览", exact: true }).click();
   await expect(
-    page.getByText("两台 Kea 配置校验通过", { exact: true }),
+    page.getByText("主备节点配置校验通过", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "确认同步", exact: true }).click();
   const reservation = page

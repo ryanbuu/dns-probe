@@ -36,9 +36,9 @@ const titles = {
 };
 const descriptions = {
   subnets: "管理 DHCPv4 子网、地址池与客户端选项。",
-  reservations: "按 MAC 地址为设备分配固定地址，两台 Kea 同步保存。",
+  reservations: "按 MAC 地址为设备分配固定地址，主备节点同步保存。",
   leases: "查询客户端分配情况、租约有效期与 DNS 更新状态。",
-  ha: "检查 Kea 节点、热备通信与配置一致性。",
+  ha: "检查 DHCP 服务节点、热备通信与配置一致性。",
 };
 async function load() {
   loading.value = true;
@@ -139,6 +139,13 @@ const mobileLeases = computed(() =>
     mobilePage.value * 12,
   ),
 );
+function nodeNames(ids: string[]) {
+  return ids
+    .map(
+      (id) => data.value?.nodes.find((n) => n.id === id)?.label || "服务节点",
+    )
+    .join(" / ");
+}
 const editor = ref(""),
   editing = ref(false),
   busy = ref(false),
@@ -259,7 +266,7 @@ async function save() {
       { method: "POST", body: JSON.stringify(payload()) },
     );
     editor.value = "";
-    message.success("两台 Kea 已更新并持久化");
+    message.success("主备节点已更新并持久化");
     await load();
   } catch (e) {
     editError.value = (e as Error).message;
@@ -273,7 +280,7 @@ function remove(kind: string, s: DhcpSubnet | Reservation) {
   Modal.confirm({
     title: isSubnet ? "删除此子网？" : "删除此保留地址？",
     content: isSubnet
-      ? "仍有有效租约或保留地址的子网不能删除。删除会同步到两台 Kea。"
+      ? "仍有有效租约或保留地址的子网不能删除。删除会同步到主备节点。"
       : "删除后设备下次分配地址将遵循普通地址池规则，不会强制断开当前连接。",
     okText: "确认删除",
     okType: "danger",
@@ -292,7 +299,7 @@ function remove(kind: string, s: DhcpSubnet | Reservation) {
             }),
           },
         );
-        message.success("两台 Kea 配置已同步");
+        message.success("主备节点配置已同步");
         await load();
       } catch (e) {
         message.error((e as Error).message);
@@ -306,8 +313,8 @@ function leaseAction(l: DhcpLease, action: string) {
     title: action === "release" ? "释放此租约？" : "重发 DNS 更新？",
     content:
       action === "release"
-        ? `${l.address}：从两台 Kea 删除服务端租约，并请求清理 DDNS。客户端可能继续使用该地址直到续租或重新获取地址。`
-        : `由 Kea 为 ${l.address} 重发 A / PTR 更新，遵循现有 DDNS 策略。`,
+        ? `${l.address}：从主备节点删除服务端租约，并请求清理 DDNS。客户端可能继续使用该地址直到续租或重新获取地址。`
+        : `由 DHCP 服务为 ${l.address} 重发 A / PTR 更新，遵循现有 DDNS 策略。`,
     okText: action === "release" ? "确认释放" : "确认重发",
     okType: action === "release" ? "danger" : "primary",
     cancelText: "取消",
@@ -368,8 +375,8 @@ const leaseColumns = [
   <template v-if="data">
     <a-alert
       v-if="!data.enabled"
-      message="尚未连接 Kea"
-      description="请在服务端配置两台 Kea 管理接口和认证信息。"
+      message="尚未连接 DHCP 服务"
+      description="请在服务端配置主备节点管理接口和认证信息。"
       type="info"
       show-icon
     />
@@ -545,13 +552,13 @@ const leaseColumns = [
               /></a-form-item>
             </div>
             <p class="field-help">
-              保留地址在客户端下次获取或续租时生效，DNS 更新继续由 Kea 管理。
+              保留地址在客户端下次获取或续租时生效，DNS 更新通过动态注册维护。
             </p></template
           ></a-form
         >
         <template v-else
           ><a-alert
-            message="两台 Kea 配置校验通过"
+            message="主备节点配置校验通过"
             description="确认后先更新备用节点，再更新主节点，并将配置写入磁盘。"
             type="info"
             show-icon
@@ -711,7 +718,7 @@ const leaseColumns = [
                 }}{{ record.ddnsReverse ? "PTR" : "" }}</span
               >
               <div class="record-fqdn">
-                {{ record.seenOn.join(" / ") }}
+                {{ nodeNames(record.seenOn) }}
               </div></template
             ><template v-else-if="column.key === 'actions'"
               ><div class="row-actions">
@@ -891,7 +898,7 @@ const leaseColumns = [
               }}
             </div>
             <div class="mobile-record-meta">
-              副本 {{ l.seenOn.join(" / ") }} · {{ l.ddnsForward ? "A " : ""
+              副本 {{ nodeNames(l.seenOn) }} · {{ l.ddnsForward ? "A " : ""
               }}{{ l.ddnsReverse ? "PTR" : "" }}
             </div>
             <div class="row-actions">
@@ -929,8 +936,7 @@ const leaseColumns = [
         </div>
       </section>
       <p class="panel-footnote">
-        <LockOutlined />配置与租约操作均写入审计。HA
-        本身负责租约同步；子网与保留地址由本控制台同步到两台 Kea。
+        <LockOutlined />配置与租约操作均写入审计。主备服务自动同步租约，子网与保留地址配置由控制台统一发布。
       </p>
     </template>
   </template>

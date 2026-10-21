@@ -31,8 +31,8 @@ public class RecordPolicy {
   }
 
   public String protection(Zone z, Name n, int type, List<Record> records) {
-    if (!z.writable()) return "此区域由 Kea 自动维护，仅供查看";
-    if (!WRITABLE_TYPES.contains(Type.string(type))) return "DNS 系统记录由 BIND / Kea 维护";
+    if (!z.writable()) return "此区域采用动态注册管理，仅供查询与核验";
+    if (!WRITABLE_TYPES.contains(Type.string(type))) return "此记录由 DNS 系统管理";
     if (type == Type.CNAME && n.toString().equalsIgnoreCase(z.name())) return "区域根记录不能设置为 CNAME";
     for (String suffix : z.protectedNames())
       try {
@@ -41,7 +41,7 @@ public class RecordPolicy {
         throw new IllegalStateException("Invalid protected suffix");
       }
     if (records.stream().anyMatch(r -> r.getName().equals(n) && r.getType() == Type.DHCID))
-      return "此名称有 DHCID 所有权，交由 Kea 维护";
+      return "此名称受 DHCID 所有权保护，通过动态注册维护";
     for (Record r : records)
       if (r.getType() == Type.NS
           && !r.getName().toString().equalsIgnoreCase(z.name())

@@ -110,7 +110,7 @@ public class DnsService {
   private long mutate(
       String id, Change change, Mutation mutation, boolean delete, boolean create, String actor) {
     Zone z = registry.find(id);
-    if (!z.writable()) throw new ApiException(FORBIDDEN, "此区域由 Kea 自动维护，不允许人工修改");
+    if (!z.writable()) throw new ApiException(FORBIDDEN, "此区域采用动态注册管理，不支持静态配置变更");
     List<Record> snapshot = gateway.read(z);
     Name name = policy.name(delete ? mutation.name() : change.name(), z);
     String type = (delete ? mutation.type() : change.type()).toUpperCase(Locale.ROOT);

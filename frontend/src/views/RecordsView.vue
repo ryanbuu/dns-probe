@@ -142,11 +142,12 @@ function key(record: Rrset) {
   return record.name + "|" + record.type;
 }
 function management(record: Rrset) {
+  if (systemTypes.has(record.type)) return "系统管理";
   return data.value?.zone.readOnly
-    ? "Kea 自动维护"
+    ? "动态注册"
     : record.editable
-      ? "手动维护"
-      : "系统保护";
+      ? "静态配置"
+      : "系统管理";
 }
 function edit(record?: Rrset) {
   editing.value = record;
@@ -313,8 +314,8 @@ function shortName(name: string) {
             <p>
               {{
                 data.zone.readOnly
-                  ? "此区域由 Kea 自动维护。"
-                  : "在主节点维护记录，变更自动同步到从节点。"
+                  ? "记录通过动态注册生成，并随客户端租约自动更新。"
+                  : "采用静态配置管理记录，变更自动同步至从节点。"
               }}
             </p>
             <div class="zone-meta">
@@ -329,7 +330,7 @@ function shortName(name: string) {
             </div>
           </div>
           <a-tag>{{
-            data.zone.readOnly ? "Kea 管理" : "手动维护"
+            data.zone.readOnly ? "动态注册" : "静态配置"
           }}</a-tag></template
         ><template v-else-if="referenceTab === 'dns'"
           ><div>
@@ -353,8 +354,8 @@ function shortName(name: string) {
     <a-alert
       v-if="data.zone.readOnly"
       class="readonly-alert"
-      message="此区域由 Kea 自动维护"
-      description="可以查询和对比记录；增删改已禁用，以保护 DHCP 客户端的 A、PTR 和 DHCID 所有权。"
+      message="此区域采用动态注册管理"
+      description="记录随客户端租约自动更新。为保持正向、反向解析及客户端所有权一致性，此处仅供查询与核验。"
       type="info"
       show-icon
     />
@@ -612,8 +613,7 @@ function shortName(name: string) {
       </div>
     </section>
     <p class="panel-footnote">
-      <LockOutlined />带锁记录由系统或 Kea
-      维护，手动编辑已禁用。导出内容为当前筛选的记录。
+      <LockOutlined />带锁记录由系统管理或通过动态注册维护，仅供查询。导出内容为当前筛选的记录。
     </p>
   </template>
   <a-drawer

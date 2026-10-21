@@ -24,21 +24,21 @@ infrapilot:
       secondaries: [{ label: bind2, host: 192.0.2.11, port: 53 }]
     - id: dhcp
       name: dhcp.intra.example.com.
-      description: Kea Internal / IoT 自动维护
+      description: 客户端动态注册 · Internal / IoT
       read-only: true
       key: web
       primary: { label: bind1, host: 192.0.2.10, port: 53 }
       secondaries: [{ label: bind2, host: 192.0.2.11, port: 53 }]
     - id: reverse-internal
       name: 100.51.198.in-addr.arpa.
-      description: Kea Internal 自动维护
+      description: 内部网络客户端动态反向解析
       read-only: true
       key: web
       primary: { label: bind1, host: 192.0.2.10, port: 53 }
       secondaries: [{ label: bind2, host: 192.0.2.11, port: 53 }]
     - id: reverse-iot
       name: 113.0.203.in-addr.arpa.
-      description: Kea IoT 自动维护
+      description: 物联网客户端动态反向解析
       read-only: true
       key: web
       primary: { label: bind1, host: 192.0.2.10, port: 53 }

@@ -57,7 +57,7 @@ public class DhcpService {
 
   private ObjectNode config(String id) {
     JsonNode d = client.call(id, "config-get", null).path("arguments").path("Dhcp4");
-    if (!d.isObject()) throw new ApiException(BAD_GATEWAY, "Kea 未返回有效配置");
+    if (!d.isObject()) throw new ApiException(BAD_GATEWAY, "DHCP 服务未返回有效配置");
     ObjectNode out = obj();
     out.set("Dhcp4", d);
     return out;
@@ -90,7 +90,7 @@ public class DhcpService {
       if (!page.isArray() || page.isEmpty()) return all;
       all.addAll((ArrayNode) page);
       String next = page.get(page.size() - 1).path("ip-address").asText();
-      if (next.equals(from)) throw new ApiException(BAD_GATEWAY, "Kea 租约分页游标未前进");
+      if (next.equals(from)) throw new ApiException(BAD_GATEWAY, "DHCP 租约分页游标未前进");
       from = next;
       if (page.size() < 500) return all;
     }
@@ -126,7 +126,7 @@ public class DhcpService {
                   status.path("ha-servers").path("remote").path("in-touch").asBoolean(false))
               .put("leaseCount", ls.size());
         } catch (Exception e) {
-          view.put("online", false).put("error", "节点连接失败，请检查 Kea 管理接口");
+          view.put("online", false).put("error", "节点连接失败，请检查 DHCP 管理接口");
         }
       }
     List<List<ObjectNode>> sets = configs.values().stream().map(this::subnets).toList();
@@ -419,7 +419,7 @@ public class DhcpService {
   public synchronized Map<String, Long> change(
       String operation, Change c, String actor, boolean preview) {
     Snapshot before = snapshot();
-    if (!writable(before)) throw new ApiException(CONFLICT, "两台 Kea 必须连通、HA 正常且子网配置一致后才能修改");
+    if (!writable(before)) throw new ApiException(CONFLICT, "主备节点必须连通、HA 正常且子网配置一致后才能修改");
     if (c.revision() == null || !c.revision().equals(before.revision()))
       throw new ApiException(CONFLICT, "DHCP 配置已变化，请刷新后重试");
     Map<String, ObjectNode> after = new LinkedHashMap<>();
@@ -447,7 +447,7 @@ public class DhcpService {
     try {
       for (String node : order) {
         if (!config(node).equals(before.configs().get(node)))
-          throw new ApiException(CONFLICT, "Kea 配置被其他管理端修改");
+          throw new ApiException(CONFLICT, "DHCP 配置被其他管理端修改");
         attempted.add(node);
         client.call(node, "config-set", after.get(node));
         client.call(node, "config-write", obj());
@@ -470,14 +470,14 @@ public class DhcpService {
       audit.finish(
           id,
           restored ? "FAILED" : "PENDING",
-          restored ? "配置同步失败，已恢复之前配置" : "配置同步结果未确认，需检查两台 Kea 并手工恢复");
+          restored ? "配置同步失败，已恢复之前配置" : "配置同步结果未确认，需检查主备节点并手工恢复");
       throw new ApiException(
-          SERVICE_UNAVAILABLE, restored ? "配置同步失败，已回滚，请刷新" : "部分节点更新结果未确认，请查看审计并检查两台 Kea");
+          SERVICE_UNAVAILABLE, restored ? "配置同步失败，已回滚，请刷新" : "部分节点更新结果未确认，请查看审计并检查主备节点");
     }
     try {
-      audit.finish(id, "SUCCESS", "两台 Kea 已校验、更新并持久化");
+      audit.finish(id, "SUCCESS", "主备节点已校验、更新并持久化");
     } catch (Exception e) {
-      throw new ApiException(SERVICE_UNAVAILABLE, "Kea 已更新，审计完成状态未保存，请核实后再操作");
+      throw new ApiException(SERVICE_UNAVAILABLE, "DHCP 配置已更新，审计完成状态未保存，请核实后再操作");
     }
     return Map.of("auditId", id);
   }
@@ -487,7 +487,7 @@ public class DhcpService {
     if (a.action() == null || !Set.of("release", "resend-ddns").contains(a.action()))
       throw bad("不支持的租约操作");
     Snapshot s = snapshot();
-    if (!writable(s)) throw new ApiException(CONFLICT, "两台 Kea 及 HA 状态正常后才能修改租约");
+    if (!writable(s)) throw new ApiException(CONFLICT, "主备节点及 HA 状态正常后才能修改租约");
     JsonNode copies = leaseCopies(s, a.address());
     if (copies.isEmpty()) throw new ApiException(NOT_FOUND, "租约不存在");
     String mac = copies.elements().next().path("hw-address").asText();
@@ -519,11 +519,11 @@ public class DhcpService {
         index++;
       }
     } catch (Exception e) {
-      audit.finish(id, "PENDING", "租约操作结果未完全确认，请检查两台 Kea 和 DNS");
+      audit.finish(id, "PENDING", "租约操作结果未完全确认，请检查主备节点和 DNS");
       throw new ApiException(SERVICE_UNAVAILABLE, "租约操作结果未确认，请查看审计，不要重复提交");
     }
     audit.finish(
-        id, "SUCCESS", a.action().equals("release") ? "两台租约已释放，已请求清理 DDNS" : "已请求 Kea 重发 DDNS");
+        id, "SUCCESS", a.action().equals("release") ? "两台租约已释放，已请求清理 DDNS" : "已请求重发动态 DNS 更新");
     return Map.of("auditId", id);
   }
 }
