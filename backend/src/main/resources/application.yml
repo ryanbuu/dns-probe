@@ -5,16 +5,17 @@ server:
     session:
       timeout: 30m
       cookie:
+        name: INFRAPILOT_SESSION
         http-only: true
         same-site: strict
-        secure: ${SESSION_COOKIE_SECURE:false}
+        secure: ${INFRAPILOT_SESSION_COOKIE_SECURE:false}
 spring:
   application:
-    name: dns-probe
+    name: infrapilot
   datasource:
-    url: ${DATABASE_URL:jdbc:h2:file:./data/dns-probe}
-    username: ${DATABASE_USERNAME:dnsprobe}
-    password: ${DATABASE_PASSWORD:}
+    url: ${INFRAPILOT_DATABASE_URL:jdbc:h2:file:./data/infrapilot}
+    username: ${INFRAPILOT_DATABASE_USERNAME:infrapilot}
+    password: ${INFRAPILOT_DATABASE_PASSWORD:}
   sql:
     init:
       mode: always
@@ -23,24 +24,24 @@ spring:
   mvc:
     problemdetails:
       enabled: true
-probe:
-  mode: ${DNS_MODE:demo}
-  admin-username: ${DNS_ADMIN_USERNAME:admin}
-  admin-password: ${DNS_ADMIN_PASSWORD:}
-  viewer-username: ${DNS_VIEWER_USERNAME:viewer}
-  viewer-password: ${DNS_VIEWER_PASSWORD:}
+infrapilot:
+  mode: ${INFRAPILOT_MODE:demo}
+  admin-username: ${INFRAPILOT_ADMIN_USERNAME:admin}
+  admin-password: ${INFRAPILOT_ADMIN_PASSWORD:}
+  viewer-username: ${INFRAPILOT_VIEWER_USERNAME:viewer}
+  viewer-password: ${INFRAPILOT_VIEWER_PASSWORD:}
   timeout-seconds: 5
 
   dhcp:
-    enabled: ${DHCP_ENABLED:false}
+    enabled: ${INFRAPILOT_DHCP_ENABLED:false}
     nodes:
       - id: kea1
         label: kea1
-        url: ${KEA1_API_URL:}
-        username: ${KEA1_API_USERNAME:}
-        password: ${KEA1_API_PASSWORD:}
+        url: ${INFRAPILOT_KEA1_API_URL:}
+        username: ${INFRAPILOT_KEA1_API_USERNAME:}
+        password: ${INFRAPILOT_KEA1_API_PASSWORD:}
       - id: kea2
         label: kea2
-        url: ${KEA2_API_URL:}
-        username: ${KEA2_API_USERNAME:}
-        password: ${KEA2_API_PASSWORD:}
+        url: ${INFRAPILOT_KEA2_API_URL:}
+        username: ${INFRAPILOT_KEA2_API_USERNAME:}
+        password: ${INFRAPILOT_KEA2_API_PASSWORD:}

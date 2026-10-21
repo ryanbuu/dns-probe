@@ -6,8 +6,8 @@ COPY src ./src
 RUN mvn -q -DskipTests package
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-RUN groupadd --gid 10001 dnsprobe && useradd --uid 10001 --gid dnsprobe --no-create-home dnsprobe && mkdir /app/data && chown dnsprobe:dnsprobe /app/data
-COPY --from=build /app/target/dns-probe-0.1.0.jar /app/app.jar
+RUN groupadd --gid 10001 infrapilot && useradd --uid 10001 --gid infrapilot --no-create-home infrapilot && mkdir /app/data && chown infrapilot:infrapilot /app/data
+COPY --from=build /app/target/infrapilot-0.1.0.jar /app/infrapilot.jar
 USER 10001:10001
 EXPOSE 8080
-ENTRYPOINT ["java","-XX:MaxRAMPercentage=70","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-XX:MaxRAMPercentage=70","-jar","/app/infrapilot.jar"]

@@ -33,4 +33,4 @@ DNS 面板继续禁止人工改写 Kea 管理区域。DHCP 功能通过 Kea 命�
 
 ## 配置
 
-在 `.env` 设置 `DHCP_ENABLED=true`、`KEA1_API_URL`、`KEA1_API_USERNAME`、`KEA1_API_PASSWORD` 和第二台相同变量。第一台应为主节点，第二台为备用节点。生产密码使用随机值，Kea API 仅向应用宿主机开放。配置文件和环境文件应受操作系统权限保护，不提交 Git。
+在 `.env` 设置 `INFRAPILOT_DHCP_ENABLED=true`、`INFRAPILOT_KEA1_API_URL`、`INFRAPILOT_KEA1_API_USERNAME`、`INFRAPILOT_KEA1_API_PASSWORD` 和第二台相同变量。第一台应为主节点，第二台为备用节点。生产密码使用随机值，Kea API 仅向应用宿主机开放。配置文件和环境文件应受操作系统权限保护，不提交 Git。

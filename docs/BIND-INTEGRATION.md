@@ -1,6 +1,6 @@
 # 接入现有 BIND 与 Kea
 
-目标拓扑：bind1（192.0.2.10）拥有 `writers` 主区域；bind1 的 `readers` 与 bind2（192.0.2.11）提供副本。Kea1/2 使用自己的 TSIG 更新 DHCP 子域与客户端反向区域。DNS Probe 作为新的、独立的 DNS UPDATE 客户端加入，不覆盖现有配置。
+目标拓扑：bind1（192.0.2.10）拥有 `writers` 主区域；bind1 的 `readers` 与 bind2（192.0.2.11）提供副本。Kea1/2 使用自己的 TSIG 更新 DHCP 子域与客户端反向区域。InfraPilot 作为新的、独立的 DNS UPDATE 客户端加入，不覆盖现有配置。
 
 以下是人工合并示例，**不要整段覆盖已有 named.conf 或 update-policy**。仓库实现尚未自动部署这些权限。
 
@@ -9,7 +9,7 @@
 在安全的管理环境生成：
 
 ```sh
-tsig-keygen -a hmac-sha256 dns-probe.intra.example.com.
+tsig-keygen -a hmac-sha256 infrapilot.intra.example.com.
 ```
 
 将生成的 key 块保存在 bind1 的单独受保护配置文件，使用 `include` 加载。把相同密钥名称、算法及 Base64 secret 配置给面板。密钥文件只授予 root / bind 读取；面板使用环境变量传递 secret，不需要获取现有 Kea 密钥、签名私钥或 RNDC 密钥。
@@ -17,7 +17,7 @@ tsig-keygen -a hmac-sha256 dns-probe.intra.example.com.
 在 bind1 的 `writers` view 中，保留现有 match-clients 成员，增加：
 
 ```bind
-key "dns-probe.intra.example.com.";
+key "infrapilot.intra.example.com.";
 ```
 
 该 TSIG 身份必须匹配到 writers，而不能落入 readers。view 名称不是 DNS UPDATE 报文中的参数，BIND 使用 TSIG 身份选 view。
@@ -27,7 +27,7 @@ key "dns-probe.intra.example.com.";
 在五个 writers 主区域的 `allow-transfer` 里保留现有主从 TSIG 身份，再加入：
 
 ```bind
-key "dns-probe.intra.example.com.";
+key "infrapilot.intra.example.com.";
 ```
 
 来源网络限制可在防火墙收窄到 Docker 主机。无需开放匿名 AXFR，也无需让面板直接修改从区域。
@@ -38,7 +38,7 @@ key "dns-probe.intra.example.com.";
 
 ```bind
 update-policy {
-    grant dns-probe.intra.example.com. zonesub A AAAA CNAME MX TXT SRV CAA;
+    grant infrapilot.intra.example.com. zonesub A AAAA CNAME MX TXT SRV CAA;
 };
 ```
 
@@ -46,7 +46,7 @@ update-policy {
 
 ```bind
 update-policy {
-    grant dns-probe.intra.example.com. zonesub PTR;
+    grant infrapilot.intra.example.com. zonesub PTR;
 };
 ```
 
@@ -87,7 +87,7 @@ update-policy {
 - Kea 实际 DORA / 续租后 A/PTR/DHCID 更新仍正常。
 - 操作审计包含完整前后值与结果，测试数据已清理。
 
-回退只需停止 DNS Probe，并从 BIND 中撤销其 key、match-clients、allow-transfer 和新增 update-policy 权限；保留原有 Kea 身份、主从密钥、区域文件及签名策略。回退面板不会自动撤销已确认的人工记录变更，需要按审计逐项处理。
+回退只需停止 InfraPilot，并从 BIND 中撤销其 key、match-clients、allow-transfer 和新增 update-policy 权限；保留原有 Kea 身份、主从密钥、区域文件及签名策略。回退面板不会自动撤销已确认的人工记录变更，需要按审计逐项处理。
 
 官方参考：
 

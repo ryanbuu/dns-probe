@@ -1,4 +1,4 @@
-# DNS Probe
+# InfraPilot
 
 基于 **Java 21 / Spring Boot + Vue 3 / Ant Design Vue** 的 BIND DNS / Kea DHCP 管理面板，前后端独立构建、独立部署。
 
@@ -41,14 +41,14 @@ npm run dev
 
 打开 http://127.0.0.1:5173 。开发服务器将 `/api` 代理到后端 8080，前端不存储密码或访问令牌。
 
-默认是演示模式。点击「填入演示账户」后登录，或使用 `admin / dns-probe-demo`。该默认密码仅在演示模式可用；生产模式要求显式提供不少于 16 字符的管理员密码。
+默认是演示模式。点击「填入演示账户」后登录，或使用 `admin / infrapilot-demo`。该默认密码仅在演示模式可用；生产模式要求显式提供不少于 16 字符的管理员密码。
 
 ## Docker Compose
 
 ```sh
-# 例如部署到 /opt/ryanbuu/dns-probe
-git clone git@github.com:ryanbuu/dns-probe.git /opt/ryanbuu/dns-probe
-cd /opt/ryanbuu/dns-probe
+# 例如部署到 /opt/ryanbuu/infrapilot
+git clone git@github.com:ryanbuu/infrapilot.git /opt/ryanbuu/infrapilot
+cd /opt/ryanbuu/infrapilot
 cp .env.example .env
 docker compose up -d --build
 ```
@@ -59,8 +59,8 @@ docker compose up -d --build
 
 1. 先按 [BIND 接入说明](docs/BIND-INTEGRATION.md) 创建专用 TSIG 身份、授权 AXFR 和精确的更新权限；保留现有 Kea 身份及主从配置。
 2. 复制 `deploy/application-live.example.yml` 到 `deploy/config/application.yml`，检查区域、主从地址、只读策略和密钥名称。
-3. 修改 `.env`，设置 `DNS_MODE=live`、`DNS_WEB_TSIG_SECRET` 以及独立的管理员密码；生产配置和 `.env` 均已被 Git 忽略。
-4. HTTPS 反代部署时设置 `SESSION_COOKIE_SECURE=true`，由现有 APISIX 将指定域名转发到前端发布端口。按反代所在网络配置 `LISTEN_ADDRESS`，默认只监听本机。
+3. 修改 `.env`，设置 `INFRAPILOT_MODE=live`、`INFRAPILOT_TSIG_SECRET` 以及独立的管理员密码；生产配置和 `.env` 均已被 Git 忽略。
+4. HTTPS 反代部署时设置 `INFRAPILOT_SESSION_COOKIE_SECURE=true`，由现有 APISIX 将指定域名转发到前端发布端口。按反代所在网络配置 `INFRAPILOT_LISTEN_ADDRESS`，默认只监听本机。
 5. `docker compose up -d --build`。先核对区域读取、只读保护、测试记录及从节点同步，再交付日常使用。
 
 仓库没有包含任何现网 API Key、SSH 私钥或 TSIG 密钥。公开示例与截图使用 RFC 5737 文档地址及 example.com 域名；应用不会自动修改 BIND 权限。
@@ -82,11 +82,11 @@ CI 以 Java 21 和 Node.js 22 构建、测试。测试截图使用演示数据�
 
 ## 配置和运行
 
-- `DNS_MODE`：`demo` 或 `live`；未知模式或缺少生产区域/密钥/管理员密码会拒绝启动。
-- `DNS_ADMIN_USERNAME` / `DNS_ADMIN_PASSWORD`：管理员；修改环境变量后重启后端生效。
-- `DNS_VIEWER_USERNAME` / `DNS_VIEWER_PASSWORD`：可选只读账号，密码为空则不创建。
-- `SESSION_COOKIE_SECURE`：HTTPS 下应为 `true`。
-- 默认审计数据库为 `jdbc:h2:file:./data/dns-probe`；可通过 `DATABASE_URL`、`DATABASE_USERNAME`、`DATABASE_PASSWORD` 切换 PostgreSQL。首次启动自动创建审计表，部署前应为 PostgreSQL 准备独立数据库和最小权限账号。
+- `INFRAPILOT_MODE`：`demo` 或 `live`；未知模式或缺少生产区域/密钥/管理员密码会拒绝启动。
+- `INFRAPILOT_ADMIN_USERNAME` / `INFRAPILOT_ADMIN_PASSWORD`：管理员；修改环境变量后重启后端生效。
+- `INFRAPILOT_VIEWER_USERNAME` / `INFRAPILOT_VIEWER_PASSWORD`：可选只读账号，密码为空则不创建。
+- `INFRAPILOT_SESSION_COOKIE_SECURE`：HTTPS 下应为 `true`。
+- 默认审计数据库为 `jdbc:h2:file:./data/infrapilot`；可通过 `INFRAPILOT_DATABASE_URL`、`INFRAPILOT_DATABASE_USERNAME`、`INFRAPILOT_DATABASE_PASSWORD` 切换 PostgreSQL。首次启动自动创建审计表，部署前应为 PostgreSQL 准备独立数据库和最小权限账号。
 - 数据库不可写时不会发送新的 DNS 更新。DNS 已成功但最终审计落盘失败时返回明确错误，原意图保持 PENDING，需查询实际记录核实；DNS 更新与数据库不是分布式事务。
 - 网络超时可能意味着更新已到达 BIND，不能确认结果时不要盲目重试，先刷新记录。
 - 只读用户可浏览 DNS 和 DHCP 状态，不能修改配置、操作租约或读取审计。
@@ -94,7 +94,7 @@ CI 以 Java 21 和 Node.js 22 构建、测试。测试截图使用演示数据�
 
 停止面板不会停止 BIND、Kea 或现有区域同步。
 
-[API 说明](docs/API.md) · [BIND 接入说明](docs/BIND-INTEGRATION.md) · [DHCP 管理说明](docs/DHCP.md)
+[API 说明](docs/API.md) · [BIND 接入说明](docs/BIND-INTEGRATION.md) · [DHCP 管理说明](docs/DHCP.md) · [命名迁移](docs/MIGRATION.md)
 
 前端继续使用 Ant Design Vue 默认组件主题，整体布局参考 Cloudflare 面板：分组侧栏、网络概览、DNS 记录与 DHCP 管理、审计，以及手机端卡片。DNS 支持区域切换、通栏表格、展开编辑、筛选与列显示，当前筛选记录可导出为 zone 文本片段。
 

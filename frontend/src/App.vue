@@ -178,11 +178,11 @@ onUnmounted(() => {
   <a-config-provider :locale="zhCN">
     <div v-if="initializing" class="boot-screen">
       <a-spin size="large" />
-      <p>正在连接 DNS Probe…</p>
+      <p>正在连接 InfraPilot…</p>
     </div>
     <div v-else-if="!user" class="login-layout">
       <a class="brand login-brand" href="/"
-        ><img src="/favicon.svg" alt="" /><strong>DNS Probe</strong></a
+        ><img src="/favicon.svg" alt="" /><strong>InfraPilot</strong></a
       >
       <section class="login-panel">
         <div class="login-form-wrap">
@@ -231,14 +231,14 @@ onUnmounted(() => {
               type="link"
               @click="
                 username = 'admin';
-                password = 'dns-probe-demo';
+                password = 'infrapilot-demo';
               "
               >填入演示账户</a-button
             >
           </div>
         </div>
       </section>
-      <p class="login-bottom">DNS Probe · v{{ meta?.version || "0.1.0" }}</p>
+      <p class="login-bottom">InfraPilot · v{{ meta?.version || "0.1.0" }}</p>
     </div>
     <div v-else class="app-shell">
       <div
@@ -252,7 +252,7 @@ onUnmounted(() => {
             class="brand"
             href="#/overview"
             @click.prevent="navigate('overview')"
-            ><img src="/favicon.svg" alt="" /><strong>DNS Probe</strong></a
+            ><img src="/favicon.svg" alt="" /><strong>InfraPilot</strong></a
           ><a-button
             class="mobile-close"
             type="text"
@@ -386,7 +386,7 @@ onUnmounted(() => {
             :admin="user.admin"
           /><AuditView v-else-if="page === 'audit' && user.admin" />
           <footer class="page-footer">
-            <span>DNS Probe</span><span>DNS 与 DHCP 管理控制台</span>
+            <span>InfraPilot</span><span>DNS 与 DHCP 管理控制台</span>
           </footer>
         </div>
       </main>

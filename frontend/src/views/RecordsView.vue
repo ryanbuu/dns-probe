@@ -165,7 +165,7 @@ function edit(record?: Rrset) {
 function exportRecords() {
   if (!data.value) return;
   const text = [
-    "; DNS Probe - filtered record export",
+    "; InfraPilot - filtered record export",
     "; Zone: " + data.value.zone.name,
     ...filtered.value.flatMap((r) =>
       r.values.map((value) => `${r.name} ${r.ttl} IN ${r.type} ${value}`),

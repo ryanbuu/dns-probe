@@ -1,11 +1,11 @@
-# Copy to deploy/config/application.yml and change DNS_MODE=live in .env.
+# Copy to deploy/config/application.yml and change INFRAPILOT_MODE=live in .env.
 # The mounted config directory is loaded after the packaged defaults.
-probe:
+infrapilot:
   keys:
     web:
-      name: dns-probe.intra.example.com.
+      name: infrapilot.intra.example.com.
       algorithm: hmac-sha256
-      secret: ${DNS_WEB_TSIG_SECRET}
+      secret: ${INFRAPILOT_TSIG_SECRET}
   zones:
     - id: intra
       name: intra.example.com.
