@@ -11,6 +11,7 @@ import {
 } from "@ant-design/icons-vue";
 import { routes } from "../navigation";
 import type { User } from "../types";
+import BrandIdentity from "./BrandIdentity.vue";
 
 const props = defineProps<{ user: User; page: string; mobile?: boolean }>();
 const emit = defineEmits<{
@@ -36,7 +37,7 @@ const menu = computed(() =>
         href="#/overview"
         @click.prevent="emit('navigate', 'overview')"
       >
-        <img src="/favicon.svg" alt="" /><strong>InfraPilot</strong>
+        <BrandIdentity />
       </a>
       <a-button
         v-if="mobile"

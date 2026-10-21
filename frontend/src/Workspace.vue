@@ -12,6 +12,7 @@ import AuditView from "./views/AuditView.vue";
 import DhcpView from "./views/DhcpView.vue";
 import ThemeSwitcher from "./components/ThemeSwitcher.vue";
 import HelpHint from "./components/HelpHint.vue";
+import BrandIdentity from "./components/BrandIdentity.vue";
 const { message } = AntdApp.useApp();
 const meta = ref<Meta>(),
   user = ref<User>(),
@@ -189,9 +190,7 @@ onUnmounted(() => {
   </div>
   <div v-else-if="!user" class="login-layout">
     <ThemeSwitcher class="login-theme" />
-    <a class="brand login-brand" href="/"
-      ><img src="/favicon.svg" alt="" /><strong>InfraPilot</strong></a
-    >
+    <a class="brand login-brand" href="/"><BrandIdentity /></a>
     <section class="login-panel">
       <div class="login-form-wrap">
         <div class="heading-with-help">

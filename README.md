@@ -1,5 +1,7 @@
 # InfraPilot
 
+![InfraPilot 标识](docs/screenshots/identity.png)
+
 基于 **Java 21 / Spring Boot + Vue 3 / Ant Design Vue** 的 BIND DNS / Kea DHCP 管理面板，前后端独立构建、独立部署。
 
 通过 AXFR 读取区域，使用 RFC2136 + TSIG 原子更新记录集。BIND 继续负责主从同步和 DNSSEC 签名；Kea 继续管理客户端 DDNS。
