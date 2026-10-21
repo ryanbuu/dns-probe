@@ -11,11 +11,15 @@ test("record lifecycle, protected zones, comparison and audit", async ({
   page,
 }) => {
   await signIn(page);
-  await page.getByRole("button", { name: /解析记录/ }).click();
+  await page.getByRole("menuitem", { name: /解析记录/ }).click();
   await expect(
     page.getByRole("heading", { name: "intra.example.com" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "添加记录" }).click();
+  const addButton = page.getByRole("button", { name: "添加记录" });
+  await expect(addButton).toHaveCSS("background-color", "rgb(64, 158, 255)");
+  await expect(addButton).toHaveCSS("border-radius", "4px");
+  await expect(addButton).toHaveCSS("font-size", "14px");
+  await addButton.click();
   await page
     .getByRole("textbox", { name: "记录名称", exact: true })
     .fill("browser-test");
@@ -55,7 +59,7 @@ test("record lifecycle, protected zones, comparison and audit", async ({
   await expect(
     page.getByText("此区域由 Kea 自动维护", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: /操作审计/ }).click();
+  await page.getByRole("menuitem", { name: /操作审计/ }).click();
   await expect(
     page
       .getByRole("row")
@@ -71,7 +75,7 @@ test("desktop and mobile views remain usable", async ({ page }) => {
     fullPage: true,
     animations: "disabled",
   });
-  await page.getByRole("button", { name: /解析记录/ }).click();
+  await page.getByRole("menuitem", { name: /解析记录/ }).click();
   await expect(
     page.getByRole("heading", { name: "intra.example.com" }),
   ).toBeVisible();
@@ -83,7 +87,7 @@ test("desktop and mobile views remain usable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole("button", { name: "打开菜单" })).toBeVisible();
   await page.getByRole("button", { name: "打开菜单" }).click();
-  await page.getByRole("button", { name: /概览/ }).click();
+  await page.getByRole("menuitem", { name: /概览/ }).click();
   await expect(
     page.getByRole("heading", { name: "域名有序，服务可达。" }),
   ).toBeVisible();

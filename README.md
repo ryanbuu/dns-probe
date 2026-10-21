@@ -93,3 +93,5 @@ CI 以 Java 21 和 Node.js 22 构建、测试。测试截图使用演示数据�
 停止面板不会停止 BIND、Kea 或现有区域同步。应用只管理记录，不接管 DNS 服务。
 
 [API 说明](docs/API.md) · [BIND 接入说明](docs/BIND-INTEGRATION.md)
+
+前端使用 Element Plus 默认主题；不覆盖组件配色、圆角、字号和状态样式，仅保留应用布局与响应式尺寸适配。

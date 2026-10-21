@@ -227,22 +227,19 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
           ><span class="status-dot"></span>
         </div>
         <div class="nav-label">工作空间</div>
-        <nav>
-          <button
+        <el-menu :default-active="page">
+          <el-menu-item
             v-for="item in menu"
             :key="item.id"
-            :class="{ selected: page === item.id }"
+            :index="item.id"
             @click="
               page = item.id;
               mobileMenu = false;
             "
           >
-            <component :is="item.icon" /><span>{{ item.title }}</span
-            ><span v-if="item.id === 'records'" class="nav-count">{{
-              zones.length
-            }}</span>
-          </button>
-        </nav>
+            <component :is="item.icon" /><span>{{ item.title }}</span>
+          </el-menu-item>
+        </el-menu>
         <div class="sidebar-spacer"></div>
         <div class="sidebar-protocol">
           <ConnectionIcon />
@@ -251,9 +248,7 @@ onUnmounted(() => window.removeEventListener("session-expired", expired));
           </div>
         </div>
         <div class="sidebar-user">
-          <el-avatar style="background: #e9efff; color: #2563eb">{{
-            user.username.slice(0, 1).toUpperCase()
-          }}</el-avatar>
+          <el-avatar>{{ user.username.slice(0, 1).toUpperCase() }}</el-avatar>
           <div>
             <strong>{{ user.username }}</strong
             ><span>{{ user.admin ? "管理员" : "只读用户" }}</span>

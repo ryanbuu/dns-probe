@@ -291,9 +291,7 @@ function shortName(name: string) {
           >
           <el-table-column label="类型" width="88"
             ><template #default="{ row }"
-              ><span class="type-tag" :class="row.type.toLowerCase()">{{
-                row.type
-              }}</span></template
+              ><el-tag>{{ row.type }}</el-tag></template
             ></el-table-column
           >
           <el-table-column label="TTL" width="80"
@@ -314,7 +312,7 @@ function shortName(name: string) {
               </div></template
             ></el-table-column
           >
-          <el-table-column label="操作" width="114" fixed="right"
+          <el-table-column label="操作" width="168" fixed="right"
             ><template #default="{ row }"
               ><div class="row-actions">
                 <el-tooltip content="复制记录"
