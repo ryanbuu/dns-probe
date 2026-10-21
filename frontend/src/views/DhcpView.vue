@@ -8,16 +8,17 @@ import {
   ref,
   watch,
 } from "vue";
-import { message, Modal } from "ant-design-vue";
+import { App as AntdApp } from "ant-design-vue";
 import {
   ReloadOutlined,
   PlusOutlined,
   SearchOutlined,
-  LockOutlined,
   DeleteOutlined,
 } from "@ant-design/icons-vue";
 import { api } from "../api";
 import type { DhcpState, DhcpSubnet, DhcpLease, Reservation } from "../types";
+import HelpHint from "../components/HelpHint.vue";
+const { message, modal: Modal } = AntdApp.useApp();
 const props = defineProps<{
   section: "subnets" | "reservations" | "leases" | "ha";
   admin: boolean;
@@ -363,8 +364,15 @@ const leaseColumns = [
   <div class="page-heading resource-heading">
     <div>
       <div class="resource-eyebrow">DHCP / IPv4</div>
-      <h1>{{ titles[section] }}</h1>
-      <p>{{ descriptions[section] }}</p>
+      <div class="heading-with-help">
+        <h1>
+          {{ titles[section] }}
+        </h1>
+        <HelpHint
+          :label="titles[section] + '说明'"
+          :text="descriptions[section] + '配置与租约操作均记录审计。'"
+        />
+      </div>
     </div>
     <a-button :loading="loading" @click="load"
       ><ReloadOutlined />刷新状态</a-button
@@ -376,10 +384,14 @@ const leaseColumns = [
     <a-alert
       v-if="!data.enabled"
       message="尚未连接 DHCP 服务"
-      description="请在服务端配置主备节点管理接口和认证信息。"
       type="info"
       show-icon
-    />
+      ><template #message
+        ><span class="section-label"
+          >尚未连接 DHCP 服务<HelpHint
+            label="DHCP 接入说明"
+            text="请在服务端配置主备节点管理接口和认证信息。" /></span></template
+    ></a-alert>
     <template v-else>
       <div class="resource-metrics">
         <div>
@@ -403,10 +415,14 @@ const leaseColumns = [
         v-if="!data.writable"
         class="readonly-alert"
         message="DHCP 写入暂不可用"
-        description="需要两台节点连通、HA 通信正常且子网配置一致，才能安全地同步修改。读取功能仍可使用。"
         type="warning"
         show-icon
-      />
+        ><template #message
+          ><span class="section-label"
+            >DHCP 写入暂不可用<HelpHint
+              label="写入限制说明"
+              text="需要两台节点连通、HA 通信正常且子网配置一致，才能同步修改。读取功能仍可使用。" /></span></template
+      ></a-alert>
       <div v-if="section !== 'ha'" class="records-toolbar">
         <a-input
           v-model:value="search"
@@ -448,7 +464,7 @@ const leaseColumns = [
         aria-label="DHCP 配置编辑"
       >
         <div class="inline-editor-heading">
-          <h2>
+          <h2 class="heading-with-help">
             {{
               editor === "subnet"
                 ? editing
@@ -457,7 +473,14 @@ const leaseColumns = [
                 : editing
                   ? "编辑保留地址"
                   : "添加保留地址"
-            }}
+            }}<HelpHint
+              :label="editor === 'subnet' ? '子网配置说明' : '保留地址配置说明'"
+              :text="
+                editor === 'subnet'
+                  ? '保留现有中继、客户端分类、DDNS 和 HA 设置。新建子网需要网关与中继能够转发该网络的 DHCP 请求。'
+                  : '保留地址在客户端下次获取或续租时生效，DNS 通过动态注册维护。'
+              "
+            />
           </h2>
           <a-button
             type="text"
@@ -520,11 +543,7 @@ const leaseColumns = [
                   aria-label="搜索域"
               /></a-form-item>
             </div>
-            <p class="field-help">
-              保留现有中继、客户端分类、DDNS 和 HA
-              设置。新建子网还需要现有网关与中继能够转发该网络的 DHCP 请求。
-            </p></template
-          >
+          </template>
           <template v-else
             ><div class="dhcp-options-grid">
               <a-form-item label="所属子网" required
@@ -550,19 +569,16 @@ const leaseColumns = [
                   v-model:value="reservationForm.hostname"
                   aria-label="保留主机名"
               /></a-form-item>
-            </div>
-            <p class="field-help">
-              保留地址在客户端下次获取或续租时生效，DNS 更新通过动态注册维护。
-            </p></template
-          ></a-form
-        >
+            </div> </template
+        ></a-form>
         <template v-else
-          ><a-alert
-            message="主备节点配置校验通过"
-            description="确认后先更新备用节点，再更新主节点，并将配置写入磁盘。"
-            type="info"
-            show-icon
-          />
+          ><a-alert message="主备节点配置校验通过" type="info" show-icon
+            ><template #message
+              ><span class="section-label"
+                >主备节点配置校验通过<HelpHint
+                  label="发布顺序说明"
+                  text="确认后先更新备用节点，再更新主节点，并将配置写入磁盘。" /></span></template
+          ></a-alert>
           <div class="change-preview">
             <div class="preview-name">待提交变更</div>
             <pre class="config-preview">{{
@@ -643,8 +659,11 @@ const leaseColumns = [
         class="records-table-panel"
       >
         <div class="table-caption">
-          <span>{{ filteredReservations.length }} 个保留地址</span
-          ><span class="muted">按 MAC 识别客户端</span>
+          <span class="section-label"
+            >{{ filteredReservations.length }} 个保留地址<HelpHint
+              label="保留地址识别说明"
+              text="按 MAC 地址识别客户端。"
+          /></span>
         </div>
         <a-table
           :columns="reservationColumns"
@@ -679,8 +698,11 @@ const leaseColumns = [
         class="records-table-panel"
       >
         <div class="table-caption">
-          <span>{{ filteredLeases.length }} 条租约</span
-          ><span class="muted">已合并主备副本</span>
+          <span class="section-label"
+            >{{ filteredLeases.length }} 条租约<HelpHint
+              label="租约数据说明"
+              text="已合并主备租约副本，相同租约不重复显示。"
+          /></span>
         </div>
         <a-table
           :columns="leaseColumns"
@@ -935,9 +957,6 @@ const leaseColumns = [
           />
         </div>
       </section>
-      <p class="panel-footnote">
-        <LockOutlined />配置与租约操作均写入审计。主备服务自动同步租约，子网与保留地址配置由控制台统一发布。
-      </p>
     </template>
   </template>
 </template>

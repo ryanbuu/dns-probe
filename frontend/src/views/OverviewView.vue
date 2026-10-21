@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons-vue";
 import type { Zone, DhcpState } from "../types";
 import { api } from "../api";
+import HelpHint from "../components/HelpHint.vue";
 const props = defineProps<{ zones: Zone[]; loading: boolean; demo: boolean }>();
 const emit = defineEmits<{ select: [id: string] }>();
 const dhcp = ref<DhcpState>(),
@@ -46,8 +47,13 @@ onMounted(refresh);
     <div class="resource-eyebrow">我的工作空间</div>
     <div class="page-heading">
       <div>
-        <h1>网络概览</h1>
-        <p>在一个工作空间管理 DNS 解析、DHCP 地址分配和高可用服务。</p>
+        <div class="heading-with-help">
+          <h1>网络概览</h1>
+          <HelpHint
+            label="网络概览说明"
+            text="查看 DNS 区域、DHCP 地址分配与高可用服务状态。"
+          />
+        </div>
       </div>
       <a-button :loading="loading" @click="refresh"
         ><ReloadOutlined />刷新状态</a-button
@@ -60,16 +66,20 @@ onMounted(refresh);
       ><small>{{ records }} 组解析记录</small>
     </div>
     <div>
-      <span>DHCP 子网</span
-      ><strong>{{ dhcp?.enabled ? dhcp.subnets.length : "—" }}</strong
-      ><small>IPv4 地址分配</small>
+      <span
+        >DHCP 子网<HelpHint
+          label="子网统计说明"
+          text="已接入的 IPv4 地址分配网络。" /></span
+      ><strong>{{ dhcp?.enabled ? dhcp.subnets.length : "—" }}</strong>
     </div>
     <div>
-      <span>有效租约</span
+      <span
+        >有效租约<HelpHint
+          label="租约统计说明"
+          text="统计已合并主备副本的有效租约，不重复计数。" /></span
       ><strong>{{
         dhcp?.enabled ? dhcp.leases.filter((l) => l.active).length : "—"
-      }}</strong
-      ><small>主备租约已合并</small>
+      }}</strong>
     </div>
     <div>
       <span>HA 在线节点</span
@@ -192,13 +202,16 @@ onMounted(refresh);
       <div class="service-summary">
         <ClusterOutlined />
         <div>
-          <strong>DHCP 地址分配</strong>
+          <strong class="section-label"
+            >DHCP 地址分配<HelpHint
+              label="配置同步说明"
+              text="配置变更同步到两台节点并持久化。"
+          /></strong>
           <p>
             {{
               dhcp?.enabled ? "主备管理与租约查询已连接" : "尚未连接管理接口"
             }}
           </p>
-          <p>配置变更同步到两台节点并持久化</p>
         </div>
         <a-button v-if="dhcp?.enabled" type="link" @click="go('dhcp-ha')"
           >查看 HA</a-button

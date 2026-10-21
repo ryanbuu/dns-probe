@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import { ReloadOutlined, ClockCircleOutlined } from "@ant-design/icons-vue";
 import { api } from "../api";
 import type { AuditEvent } from "../types";
+import HelpHint from "../components/HelpHint.vue";
 const rows = ref<AuditEvent[]>([]),
   loading = ref(false),
   error = ref(""),
@@ -75,8 +76,13 @@ onMounted(load);
 <template>
   <div class="page-heading">
     <div>
-      <h1>操作审计</h1>
-      <p>查看 DNS、DHCP 和保留地址的变更，以及双节点同步结果。</p>
+      <div class="heading-with-help">
+        <h1>操作审计</h1>
+        <HelpHint
+          label="审计说明"
+          text="查看 DNS、DHCP 和保留地址的变更及双节点同步结果。"
+        />
+      </div>
     </div>
     <a-button :loading="loading" @click="load"
       ><ReloadOutlined />刷新日志</a-button
@@ -112,7 +118,11 @@ onMounted(load);
   </div>
   <div class="records-table-panel">
     <div class="table-caption">
-      <span>操作事件</span><span class="muted">筛选当前页 · 每页 50 条</span>
+      <span class="section-label"
+        >操作事件<HelpHint
+          label="审计筛选说明"
+          text="筛选仅作用于当前页，每页最多 50 条记录。"
+      /></span>
     </div>
     <a-table
       :columns="columns"
@@ -173,8 +183,7 @@ onMounted(load);
       ><template #emptyText
         ><div class="audit-empty">
           <ClockCircleOutlined />
-          <h3>变更历史从这里开始</h3>
-          <p>DNS 和 DHCP 配置提交后，结果会出现在这里。</p>
+          <h3>暂无审计记录</h3>
         </div></template
       ></a-table
     >

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onUnmounted, nextTick } from "vue";
-import { message, Modal } from "ant-design-vue";
+import { App as AntdApp } from "ant-design-vue";
 import {
   PlusOutlined,
   ReloadOutlined,
@@ -17,6 +17,8 @@ import {
 import { api } from "../api";
 import type { Rrset, Zone, ZoneRecords, ProbeResult } from "../types";
 import RecordEditor from "../components/RecordEditor.vue";
+import HelpHint from "../components/HelpHint.vue";
+const { message, modal: Modal } = AntdApp.useApp();
 const props = defineProps<{
   zones: Zone[];
   initialZone?: string;
@@ -267,8 +269,13 @@ function shortName(name: string) {
   </div>
   <div class="page-heading dns-heading">
     <div>
-      <h1>DNS 记录</h1>
-      <p>管理域名解析记录，控制服务发现与访问。</p>
+      <div class="heading-with-help">
+        <h1>DNS 记录</h1>
+        <HelpHint
+          label="DNS 记录说明"
+          text="管理域名解析记录。带锁记录仅供查询；导出仅包含当前筛选的记录。"
+        />
+      </div>
     </div>
     <a-button :loading="loading" @click="load"
       ><ReloadOutlined />刷新记录</a-button
@@ -282,7 +289,16 @@ function shortName(name: string) {
   <template v-if="data">
     <section class="dns-reference">
       <div class="reference-header">
-        <span class="reference-title">区域信息</span>
+        <span class="section-label"
+          ><span class="reference-title">区域信息</span
+          ><HelpHint
+            label="区域维护说明"
+            :text="
+              data.zone.readOnly
+                ? '记录随客户端租约动态注册。为保持正向、反向解析及客户端所有权一致性，此处仅供查询与核验。'
+                : '采用静态配置管理记录，变更自动同步至从节点。'
+            "
+        /></span>
         <a-button
           type="text"
           :aria-label="referenceOpen ? '收起区域说明' : '展开区域说明'"
@@ -296,13 +312,6 @@ function shortName(name: string) {
         <span class="status-dot"></span>
         <div>
           <h2>{{ data.zone.name.replace(/\.$/, "") }}</h2>
-          <p>
-            {{
-              data.zone.readOnly
-                ? "记录通过动态注册生成，并随客户端租约自动更新。"
-                : "采用静态配置管理记录，变更自动同步至从节点。"
-            }}
-          </p>
           <div class="zone-meta">
             <span
               >主节点 <b>{{ data.zone.primary }}</b></span
@@ -317,14 +326,6 @@ function shortName(name: string) {
         <a-tag>{{ data.zone.readOnly ? "动态注册" : "静态配置" }}</a-tag>
       </div>
     </section>
-    <a-alert
-      v-if="data.zone.readOnly"
-      class="readonly-alert"
-      message="此区域采用动态注册管理"
-      description="记录随客户端租约自动更新。为保持正向、反向解析及客户端所有权一致性，此处仅供查询与核验。"
-      type="info"
-      show-icon
-    />
     <div class="records-toolbar">
       <a-input
         v-model:value="search"
@@ -578,16 +579,14 @@ function shortName(name: string) {
         />
       </div>
     </section>
-    <p class="panel-footnote">
-      <LockOutlined />带锁记录由系统管理或通过动态注册维护，仅供查询。导出内容为当前筛选的记录。
-    </p>
   </template>
-  <a-drawer
-    :open="probeOpen"
-    title="主从查询对比"
-    :width="580"
-    @close="probeOpen = false"
-    ><p class="muted">查询主节点与从节点的实际响应，核对记录和 SOA 序列号。</p>
+  <a-drawer :open="probeOpen" :width="580" @close="probeOpen = false"
+    ><template #title
+      ><span class="section-label"
+        >主从查询对比<HelpHint
+          label="主从对比说明"
+          text="查询主节点与从节点的实际响应，核对记录和 SOA 序列号。" /></span
+    ></template>
     <div class="probe-form">
       <a-input
         v-model:value="probeName"

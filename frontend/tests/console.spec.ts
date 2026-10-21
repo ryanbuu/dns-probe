@@ -64,9 +64,11 @@ test("record lifecycle, protected zones, comparison and audit", async ({
     .locator('.ant-select-item-option[title="dhcp.intra.example.com"]')
     .click();
   await expect(page.getByRole("button", { name: "添加记录" })).toBeDisabled();
-  await expect(
-    page.getByText("此区域采用动态注册管理", { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator(".reference-content .ant-tag")).toHaveText(
+    "动态注册",
+  );
+  await page.getByRole("button", { name: "区域维护说明", exact: true }).hover();
+  await expect(page.getByRole("tooltip")).toContainText("仅供查询与核验");
   await page.getByRole("menuitem", { name: /操作审计/ }).click();
   await expect(
     page

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import { message } from "ant-design-vue";
+import { App as AntdApp } from "ant-design-vue";
 import { api } from "../api";
 import type { Rrset, Zone } from "../types";
+import HelpHint from "./HelpHint.vue";
+const { message } = AntdApp.useApp();
 const props = defineProps<{ open: boolean; zone: Zone; record?: Rrset }>();
 const emit = defineEmits<{ close: []; saved: [] }>();
 const form = reactive({ name: "", type: "A", ttl: 300, values: "" });
@@ -64,7 +66,7 @@ async function save() {
         expectedRevision: props.record?.revision,
       }),
     });
-    message.success("记录已保存，BIND 将自动同步到从节点");
+    message.success("记录已保存");
     emit("saved");
     emit("close");
   } catch (e) {
@@ -99,14 +101,24 @@ async function save() {
             :options="types.map((value) => ({ value }))"
             aria-label="记录类型"
         /></a-form-item>
-        <a-form-item label="记录名称" required
+        <a-form-item required
+          ><template #label
+            ><span class="section-label"
+              >记录名称<HelpHint
+                label="记录名称说明"
+                :text="`相对名称自动补全为 ${zone.name}；@ 表示区域根。`" /></span></template
           ><a-input
             v-model:value="form.name"
             :disabled="!!record"
-            placeholder="例如 www，或使用 @ 表示根域名"
+            placeholder="www / @"
             aria-label="记录名称"
         /></a-form-item>
-        <a-form-item label="TTL（秒）"
+        <a-form-item
+          ><template #label
+            ><span class="section-label"
+              >TTL（秒）<HelpHint
+                label="TTL 说明"
+                text="解析结果可被缓存的时间。已有缓存可能保留到 TTL 结束。" /></span></template
           ><a-input-number
             v-model:value="form.ttl"
             :min="0"
@@ -115,27 +127,21 @@ async function save() {
             aria-label="TTL"
         /></a-form-item>
       </div>
-      <a-form-item label="记录值" required
+      <a-form-item required
+        ><template #label
+          ><span class="section-label"
+            >记录值<HelpHint
+              label="记录值说明"
+              :text="`${hints[form.type]}。多个值每行一个。`" /></span></template
         ><a-textarea
           v-model:value="form.values"
           :rows="3"
-          :placeholder="hints[form.type]"
+          placeholder="输入记录值"
           aria-label="记录值"
-        /><span class="field-help"
-          >{{ hints[form.type] }}。多个值每行一个。</span
-        ></a-form-item
-      >
-      <p class="field-help">
-        相对名称自动补全为 {{ zone.name }}；@ 表示区域根。
-      </p>
+      /></a-form-item>
     </a-form>
     <template v-else
-      ><a-alert
-        message="确认这次变更"
-        description="确认记录值后提交，变更将自动同步到从节点。"
-        type="info"
-        show-icon
-      />
+      ><a-alert message="确认这次变更" type="info" show-icon />
       <div class="change-preview">
         <div class="preview-name mono">
           {{ form.name }} <a-tag>{{ form.type }}</a-tag
