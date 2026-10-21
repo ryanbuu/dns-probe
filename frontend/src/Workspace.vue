@@ -1,19 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { App as AntdApp } from "ant-design-vue";
-import {
-  AppstoreOutlined,
-  GlobalOutlined,
-  AuditOutlined,
-  ClusterOutlined,
-  TeamOutlined,
-  DatabaseOutlined,
-  SafetyCertificateOutlined,
-  LogoutOutlined,
-  LockOutlined,
-  MenuOutlined,
-  CloseOutlined,
-} from "@ant-design/icons-vue";
+import { MenuOutlined } from "@ant-design/icons-vue";
+import { routes } from "./navigation";
+import WorkspaceNavigation from "./components/WorkspaceNavigation.vue";
 import { api, csrf, login, logout } from "./api";
 import type { Meta, User, Zone } from "./types";
 import OverviewView from "./views/OverviewView.vue";
@@ -36,39 +26,53 @@ const meta = ref<Meta>(),
 const page = ref("overview"),
   selectedZone = ref(""),
   mobileMenu = ref(false);
-const routes = [
-  { id: "overview", title: "概览", icon: AppstoreOutlined, group: "工作空间" },
-  { id: "records", title: "解析记录", icon: GlobalOutlined, group: "DNS" },
-  {
-    id: "dhcp-subnets",
-    title: "子网与地址池",
-    icon: ClusterOutlined,
-    group: "DHCP",
-  },
-  {
-    id: "dhcp-reservations",
-    title: "保留地址",
-    icon: TeamOutlined,
-    group: "DHCP",
-  },
-  { id: "dhcp-leases", title: "租约", icon: DatabaseOutlined, group: "DHCP" },
-  {
-    id: "dhcp-ha",
-    title: "高可用状态",
-    icon: SafetyCertificateOutlined,
-    group: "DHCP",
-  },
-  { id: "audit", title: "操作审计", icon: AuditOutlined, group: "管理" },
-];
-const navSearch = ref(""),
-  openKeys = ref(["dns", "dhcp"]);
-const menu = computed(() =>
-  routes.filter(
-    (r) =>
-      (r.id !== "audit" || user.value?.admin) &&
-      r.title.includes(navSearch.value),
-  ),
-);
+const navigationBreakpoint = window.matchMedia("(max-width: 760px)");
+const compactNavigation = ref(navigationBreakpoint.matches);
+const menuTrigger = ref<{ $el: HTMLElement }>();
+const navigationDialog = ref<HTMLElement>();
+function resizeNavigation(event: MediaQueryListEvent) {
+  compactNavigation.value = event.matches;
+  mobileMenu.value = false;
+}
+function finishMobileNavigation(open: boolean) {
+  if (open) {
+    navigationDialog.value
+      ?.querySelector<HTMLButtonElement>('[aria-label="关闭菜单"]')
+      ?.focus();
+  } else if (compactNavigation.value && user.value) {
+    menuTrigger.value?.$el.focus();
+  }
+}
+function containNavigationFocus(event: KeyboardEvent) {
+  if (event.key !== "Tab") return;
+  const controls = [
+    ...(navigationDialog.value?.querySelectorAll<HTMLElement>(
+      "a[href], button, input, [tabindex]",
+    ) || []),
+  ].filter(
+    (element) =>
+      element.tabIndex >= 0 &&
+      !element.matches(":disabled") &&
+      element.getClientRects().length > 0,
+  );
+  const first = controls[0];
+  const last = controls[controls.length - 1];
+  if (!first || !last) return;
+  const active = document.activeElement;
+  if (
+    event.shiftKey &&
+    (active === first || !controls.includes(active as HTMLElement))
+  ) {
+    event.preventDefault();
+    last.focus();
+  } else if (
+    !event.shiftKey &&
+    (active === last || !controls.includes(active as HTMLElement))
+  ) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 const activeTitle = computed(
   () => routes.find((r) => r.id === page.value)?.title || "概览",
 );
@@ -167,11 +171,13 @@ function expired() {
 }
 onMounted(() => {
   readRoute();
+  navigationBreakpoint.addEventListener("change", resizeNavigation);
   window.addEventListener("hashchange", readRoute);
   window.addEventListener("session-expired", expired);
   void start();
 });
 onUnmounted(() => {
+  navigationBreakpoint.removeEventListener("change", resizeNavigation);
   window.removeEventListener("session-expired", expired);
   window.removeEventListener("hashchange", readRoute);
 });
@@ -248,93 +254,52 @@ onUnmounted(() => {
     <p class="login-bottom">InfraPilot · v{{ meta?.version || "0.1.0" }}</p>
   </div>
   <div v-else class="app-shell">
-    <div
-      v-if="mobileMenu"
-      class="sidebar-backdrop"
-      @click="mobileMenu = false"
-    ></div>
-    <aside class="sidebar" :class="{ visible: mobileMenu }">
-      <div class="sidebar-top">
-        <a class="brand" href="#/overview" @click.prevent="navigate('overview')"
-          ><img src="/favicon.svg" alt="" /><strong>InfraPilot</strong></a
-        ><a-button
-          class="mobile-close"
-          type="text"
-          aria-label="关闭菜单"
-          @click="mobileMenu = false"
-          ><CloseOutlined
-        /></a-button>
-      </div>
-      <div class="workspace-chip">
-        <a-avatar size="small">{{
-          user.username.slice(0, 1).toUpperCase()
-        }}</a-avatar>
-        <div><strong>我的工作空间</strong><small>内部 DNS 管理</small></div>
-      </div>
-      <div class="nav-search">
-        <a-input
-          v-model:value="navSearch"
-          placeholder="搜索功能"
-          aria-label="搜索导航"
-          allow-clear
+    <a-drawer
+      v-if="compactNavigation"
+      v-model:open="mobileMenu"
+      root-class-name="mobile-navigation"
+      placement="left"
+      width="min(320px, calc(100vw - 48px))"
+      :closable="false"
+      :push="false"
+      :body-style="{ padding: 0, overflow: 'hidden' }"
+      @after-open-change="finishMobileNavigation"
+    >
+      <section
+        ref="navigationDialog"
+        class="mobile-navigation-dialog"
+        role="dialog"
+        aria-label="导航菜单"
+        aria-modal="true"
+        tabindex="-1"
+        @keydown="containNavigationFocus"
+      >
+        <WorkspaceNavigation
+          :user="user"
+          :page="page"
+          mobile
+          @navigate="navigate"
+          @close="mobileMenu = false"
+          @sign-out="signOut"
         />
-      </div>
-      <a-menu mode="inline" :selected-keys="[page]" v-model:openKeys="openKeys">
-        <a-menu-item
-          v-if="menu.some((m) => m.id === 'overview')"
-          key="overview"
-          @click="navigate('overview')"
-          ><template #icon><AppstoreOutlined /></template>概览</a-menu-item
-        >
-        <a-sub-menu v-if="menu.some((m) => m.group === 'DNS')" key="dns"
-          ><template #icon><GlobalOutlined /></template
-          ><template #title>DNS</template
-          ><a-menu-item
-            v-for="item in menu.filter((m) => m.group === 'DNS')"
-            :key="item.id"
-            @click="navigate(item.id)"
-            >{{ item.title }}</a-menu-item
-          ></a-sub-menu
-        >
-        <a-sub-menu v-if="menu.some((m) => m.group === 'DHCP')" key="dhcp"
-          ><template #icon><ClusterOutlined /></template
-          ><template #title>DHCP</template
-          ><a-menu-item
-            v-for="item in menu.filter((m) => m.group === 'DHCP')"
-            :key="item.id"
-            @click="navigate(item.id)"
-            >{{ item.title }}</a-menu-item
-          ></a-sub-menu
-        >
-        <a-menu-item
-          v-if="menu.some((m) => m.id === 'audit')"
-          key="audit"
-          @click="navigate('audit')"
-          ><template #icon><AuditOutlined /></template>操作审计</a-menu-item
-        >
-      </a-menu>
-      <div class="sidebar-spacer"></div>
-      <div class="sidebar-protocol">
-        <LockOutlined /><span>DNS · DHCP · 高可用</span>
-      </div>
-      <div class="sidebar-user">
-        <a-avatar size="small">{{
-          user.username.slice(0, 1).toUpperCase()
-        }}</a-avatar>
-        <div>
-          <strong>{{ user.username }}</strong
-          ><span>{{ user.admin ? "管理员" : "只读用户" }}</span>
-        </div>
-        <a-button type="text" aria-label="退出登录" @click="signOut"
-          ><LogoutOutlined
-        /></a-button>
-      </div>
+      </section>
+    </a-drawer>
+    <aside v-else class="sidebar" aria-label="主导航">
+      <WorkspaceNavigation
+        :user="user"
+        :page="page"
+        @navigate="navigate"
+        @sign-out="signOut"
+      />
     </aside>
-    <main class="main-content">
+    <main class="main-content" :inert="mobileMenu || undefined">
       <header class="topbar">
         <div class="topbar-left">
           <a-button
+            ref="menuTrigger"
             class="mobile-toggle"
+            aria-haspopup="dialog"
+            :aria-expanded="mobileMenu"
             type="text"
             aria-label="打开菜单"
             @click="mobileMenu = true"

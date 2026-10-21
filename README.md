@@ -77,7 +77,9 @@ npx playwright install chromium  # CI / Linux；macOS 本地测试默认使用�
 npm run test:e2e
 ```
 
-浏览器测试启动隔离的内存数据库后端和开发前端，验证登录、DNS 记录及 DHCP 子网/保留地址的增删改、预览、HA 页面、审计、路由重载与手机导航，并覆盖系统主题跟随、手动偏好保留、深色弹窗及问号提示的悬停、键盘与触屏交互。后端测试覆盖实际 TCP DNS 报文、TSIG、AXFR、UPDATE 前置条件，以及 Kea HTTP 认证、权限、配置保留、冲突、租约操作和部分失败回滚。这些测试使用隔离数据，不写生产 DNS/DHCP，也不等同于现网接入验收。
+手机导航另有 WebKit 回归检查：在 `frontend` 中执行 `npx playwright install webkit`、`npm run test:e2e:webkit`。浏览器触摸模拟和 WebKit 检查覆盖布局与交互，不代替真机 iOS Safari 验证。
+
+浏览器测试启动隔离的内存数据库后端和开发前端，验证登录、DNS 记录及 DHCP 子网/保留地址的增删改、预览、HA 页面、审计、路由重载与手机导航（实色抽屉、遮罩/关闭、滚动与焦点隔离、横竖屏切换），并覆盖系统主题跟随、手动偏好保留、深色弹窗及问号提示的悬停、键盘与触屏交互。后端测试覆盖实际 TCP DNS 报文、TSIG、AXFR、UPDATE 前置条件，以及 Kea HTTP 认证、权限、配置保留、冲突、租约操作和部分失败回滚。这些测试使用隔离数据，不写生产 DNS/DHCP，也不等同于现网接入验收。
 
 CI 以 Java 21 和 Node.js 22 构建、测试。测试截图使用演示数据。
 

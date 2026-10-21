@@ -1,0 +1,9 @@
+import { defineConfig } from "@playwright/test";
+import config from "./playwright.config";
+
+export default defineConfig({
+  ...config,
+  testMatch: "navigation.spec.ts",
+  outputDir: "test-results/webkit",
+  use: { ...config.use, browserName: "webkit", channel: undefined },
+});

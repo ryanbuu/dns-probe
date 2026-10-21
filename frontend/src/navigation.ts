@@ -1,0 +1,34 @@
+import {
+  AppstoreOutlined,
+  GlobalOutlined,
+  AuditOutlined,
+  ClusterOutlined,
+  TeamOutlined,
+  DatabaseOutlined,
+  SafetyCertificateOutlined,
+} from "@ant-design/icons-vue";
+
+export const routes = [
+  { id: "overview", title: "概览", icon: AppstoreOutlined, group: "工作空间" },
+  { id: "records", title: "解析记录", icon: GlobalOutlined, group: "DNS" },
+  {
+    id: "dhcp-subnets",
+    title: "子网与地址池",
+    icon: ClusterOutlined,
+    group: "DHCP",
+  },
+  {
+    id: "dhcp-reservations",
+    title: "保留地址",
+    icon: TeamOutlined,
+    group: "DHCP",
+  },
+  { id: "dhcp-leases", title: "租约", icon: DatabaseOutlined, group: "DHCP" },
+  {
+    id: "dhcp-ha",
+    title: "高可用状态",
+    icon: SafetyCertificateOutlined,
+    group: "DHCP",
+  },
+  { id: "audit", title: "操作审计", icon: AuditOutlined, group: "管理" },
+];
