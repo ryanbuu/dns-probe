@@ -70,12 +70,16 @@ public class LiveDnsGateway implements DnsGateway {
     try {
       Update update = new Update(Name.fromString(z.name()));
       Record soa = snapshot.stream().filter(r -> r.getType() == Type.SOA).findFirst().orElseThrow();
-      // Compare the zone SOA as well as old RDATA: concurrent TTL-only changes
-      // and concurrent Kea updates must not be silently overwritten.
-      update.present(soa);
+      // BIND inline signing exposes a signed SOA serial via AXFR, while
+      // UPDATE prerequisites compare the unsigned database. Retain RRset CAS
+      // for signed zones; the signed SOA cannot be used as a prerequisite.
+      boolean signed =
+          snapshot.stream().anyMatch(r -> r.getType() == Type.RRSIG || r.getType() == Type.DNSKEY);
+      if (!signed) update.present(soa.getName(), soa.getType(), soa.rdataToString());
       Record reference = before.isEmpty() ? after.getFirst() : before.getFirst();
       if (before.isEmpty()) update.absent(reference.getName(), reference.getType());
-      else before.forEach(update::present);
+      else
+        for (Record old : before) update.present(old.getName(), old.getType(), old.rdataToString());
       update.delete(reference.getName(), reference.getType());
       if (!after.isEmpty()) update.add(after.toArray(Record[]::new));
       Message response = resolver(z.primary(), key(z)).send(update);

@@ -41,6 +41,7 @@ class LiveDnsGatewayTest {
       gateway.change(z, records, List.of(before), List.of(after));
       Message request = server.updates.poll(3, TimeUnit.SECONDS);
       assertThat(request).isNotNull();
+      assertThat(request.getSection(Section.PREREQ)).allMatch(r -> r.getTTL() == 0);
       assertThat(request.getSection(Section.PREREQ))
           .anyMatch(
               r -> r.getType() == Type.SOA && r.rdataToString().startsWith("ns.example.com."));
@@ -51,6 +52,27 @@ class LiveDnsGatewayTest {
       assertThat(request.getSection(Section.UPDATE))
           .anyMatch(r -> r.getDClass() == DClass.IN && r.rdataToString().equals("192.0.2.2"));
       assertThat(server.failure).isNull();
+    }
+  }
+
+  @Test
+  void signedZonesCompareRrsetWithoutUsingSignedSoaAsUnsignedPrerequisite() throws Exception {
+    var soa =
+        record(
+            "example.com.",
+            Type.SOA,
+            "ns.example.com. hostmaster.example.com. 999 3600 900 604800 300");
+    var dnskey = record("example.com.", Type.DNSKEY, "257 3 13 AQID");
+    var before = record("www.example.com.", Type.A, "192.0.2.1");
+    var after = record("www.example.com.", Type.A, "192.0.2.2");
+    try (DnsServer server = new DnsServer(List.of(soa, dnskey, before, soa), Rcode.NOERROR)) {
+      var p = client(server);
+      p.gateway.change(p.zone, List.of(soa, dnskey, before), List.of(before), List.of(after));
+      var request = server.updates.poll(3, TimeUnit.SECONDS);
+      assertThat(request.getSection(Section.PREREQ)).noneMatch(r -> r.getType() == Type.SOA);
+      assertThat(request.getSection(Section.PREREQ)).allMatch(r -> r.getTTL() == 0);
+      assertThat(request.getSection(Section.PREREQ))
+          .anyMatch(r -> r.getType() == Type.A && r.rdataToString().equals("192.0.2.1"));
     }
   }
 
@@ -133,7 +155,12 @@ class LiveDnsGatewayTest {
                 response.addRecord(request.getQuestion(), Section.QUESTION);
                 if (request.getHeader().getOpcode() == Opcode.UPDATE) {
                   updates.add(request);
-                  response.getHeader().setRcode(updateRcode);
+                  response
+                      .getHeader()
+                      .setRcode(
+                          request.getSection(Section.PREREQ).stream().anyMatch(r -> r.getTTL() != 0)
+                              ? Rcode.FORMERR
+                              : updateRcode);
                 } else for (Record r : records) response.addRecord(r, Section.ANSWER);
                 if (signResponse) key.apply(response, request.getTSIG());
                 byte[] answer = response.toWire();
