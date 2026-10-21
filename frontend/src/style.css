@@ -276,30 +276,21 @@ a:focus-visible {
   background: #fff;
   margin-bottom: 28px;
 }
-.reference-tabs {
+.reference-header {
   display: flex;
   align-items: center;
   min-height: 48px;
   gap: 8px;
   background: #fafafa;
   border-bottom: 1px solid #e5e5e5;
-  padding: 0 16px;
+  padding: 0 22px;
 }
-.reference-tabs > button:not(.ant-btn) {
-  border: 0;
-  border-bottom: 2px solid transparent;
-  padding: 14px 10px 12px;
-  background: transparent;
-  color: #737373;
+.reference-title {
   font-size: 14px;
-  cursor: pointer;
-}
-.reference-tabs > button.active {
-  border-bottom-color: #1677ff;
   color: #262626;
   font-weight: 500;
 }
-.reference-tabs > .ant-btn {
+.reference-header > .ant-btn {
   margin-left: auto;
 }
 .reference-content {
@@ -906,9 +897,6 @@ a:focus-visible {
   .overview-zone:hover {
     background: #fafafa;
   }
-  .reference-tabs > button:not(.ant-btn):hover {
-    color: #1677ff;
-  }
 }
 @media (max-width: 1200px) {
   .page-content {
@@ -1031,13 +1019,12 @@ a:focus-visible {
   .dns-reference {
     margin-bottom: 22px;
   }
-  .reference-tabs {
-    padding: 0 6px;
-    gap: 0;
+  .reference-header {
+    min-height: 44px;
+    padding: 0 14px;
   }
-  .reference-tabs > button:not(.ant-btn) {
-    padding: 12px 8px;
-    font-size: 12px;
+  .reference-title {
+    font-size: 13px;
   }
   .reference-content {
     padding: 16px 14px;

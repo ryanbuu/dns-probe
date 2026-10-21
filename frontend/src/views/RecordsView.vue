@@ -74,8 +74,7 @@ const page = ref(1),
   pageSize = ref(12),
   editableOnly = ref(false);
 const visibleColumns = ref(["values", "management", "ttl"]);
-const referenceOpen = ref(true),
-  referenceTab = ref("zone");
+const referenceOpen = ref(true);
 const media = window.matchMedia("(max-width: 760px)");
 const mobile = ref(media.matches);
 function resize(e: MediaQueryListEvent) {
@@ -282,73 +281,40 @@ function shortName(name: string) {
   <a-skeleton v-if="loading" active :paragraph="{ rows: 8 }" />
   <template v-if="data">
     <section class="dns-reference">
-      <div class="reference-tabs">
-        <button
-          v-for="tab in [
-            { id: 'zone', label: '区域信息' },
-            { id: 'dns', label: '关于 DNS' },
-            { id: 'ttl', label: 'TTL 与同步' },
-          ]"
-          :key="tab.id"
-          :class="{ active: referenceTab === tab.id }"
-          :aria-pressed="referenceTab === tab.id"
-          @click="
-            referenceTab = tab.id;
-            referenceOpen = true;
-          "
-        >
-          {{ tab.label }}</button
-        ><a-button
+      <div class="reference-header">
+        <span class="reference-title">区域信息</span>
+        <a-button
           type="text"
           :aria-label="referenceOpen ? '收起区域说明' : '展开区域说明'"
           :aria-expanded="referenceOpen"
+          aria-controls="zone-information"
           @click="referenceOpen = !referenceOpen"
           ><DownOutlined :rotate="referenceOpen ? 180 : 0"
         /></a-button>
       </div>
-      <div v-if="referenceOpen" class="reference-content">
-        <template v-if="referenceTab === 'zone'"
-          ><span class="status-dot"></span>
-          <div>
-            <h2>{{ data.zone.name.replace(/\.$/, "") }}</h2>
-            <p>
-              {{
-                data.zone.readOnly
-                  ? "记录通过动态注册生成，并随客户端租约自动更新。"
-                  : "采用静态配置管理记录，变更自动同步至从节点。"
-              }}
-            </p>
-            <div class="zone-meta">
-              <span
-                >主节点 <b>{{ data.zone.primary }}</b></span
-              ><span
-                >从节点
-                <b>{{ data.zone.secondaries.join(", ") || "未配置" }}</b></span
-              ><span
-                >SOA <b>{{ data.zone.serial }}</b></span
-              >
-            </div>
+      <div v-if="referenceOpen" id="zone-information" class="reference-content">
+        <span class="status-dot"></span>
+        <div>
+          <h2>{{ data.zone.name.replace(/\.$/, "") }}</h2>
+          <p>
+            {{
+              data.zone.readOnly
+                ? "记录通过动态注册生成，并随客户端租约自动更新。"
+                : "采用静态配置管理记录，变更自动同步至从节点。"
+            }}
+          </p>
+          <div class="zone-meta">
+            <span
+              >主节点 <b>{{ data.zone.primary }}</b></span
+            ><span
+              >从节点
+              <b>{{ data.zone.secondaries.join(", ") || "未配置" }}</b></span
+            ><span
+              >SOA <b>{{ data.zone.serial }}</b></span
+            >
           </div>
-          <a-tag>{{
-            data.zone.readOnly ? "动态注册" : "静态配置"
-          }}</a-tag></template
-        ><template v-else-if="referenceTab === 'dns'"
-          ><div>
-            <strong>名称、类型与内容共同决定一条 DNS 记录。</strong>
-            <p>
-              A / AAAA 指向 IP，CNAME 指向其他域名，PTR 用于反向解析。系统记录和
-              DHCID 所有权记录受保护。
-            </p>
-          </div></template
-        ><template v-else
-          ><div>
-            <strong>TTL 决定解析结果可被缓存的时间，单位为秒。</strong>
-            <p>
-              保存后从节点自动同步。已有客户端缓存可能保留到 TTL
-              结束，可通过“主从对比”核对服务器上的实际记录。
-            </p>
-          </div></template
-        >
+        </div>
+        <a-tag>{{ data.zone.readOnly ? "动态注册" : "静态配置" }}</a-tag>
       </div>
     </section>
     <a-alert
