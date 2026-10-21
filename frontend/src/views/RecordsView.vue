@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { editableRecordTypes } from "../record-types";
 import { computed, ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { App as AntdApp } from "ant-design-vue";
 import {
@@ -596,19 +597,21 @@ function shortName(name: string) {
         v-model:value="probeType"
         :options="
           [
-            'A',
-            'AAAA',
-            'CNAME',
-            'MX',
-            'TXT',
-            'PTR',
-            'SRV',
-            'CAA',
+            ...editableRecordTypes,
             'NS',
             'SOA',
+            'DNSKEY',
+            'DS',
+            'RRSIG',
+            'DHCID',
+            'NSEC',
+            'NSEC3',
+            'NSEC3PARAM',
+            'CDS',
+            'CDNSKEY',
           ].map((value) => ({ value }))
         "
-        style="width: 105px"
+        style="width: 130px"
       /><a-button type="primary" :loading="probeBusy" @click="probe"
         >查询</a-button
       >
